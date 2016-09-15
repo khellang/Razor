@@ -977,199 +977,199 @@ namespace Microsoft.AspNetCore.Razor.Parser.TagHelpers.Internal
 
                 return new TheoryData<string, Block>
                 {
+                    //{
+                    //    "<person age=\"12\" />",
+                    //    new MarkupBlock(
+                    //        new MarkupTagHelperBlock("person",
+                    //            TagMode.SelfClosing,
+                    //            attributes: new List<TagHelperAttributeNode>
+                    //            {
+                    //                new TagHelperAttributeNode("age", factory.CodeMarkup("12"))
+                    //            }))
+                    //},
+                    //{
+                    //    "<person birthday=\"DateTime.Now\" />",
+                    //    new MarkupBlock(
+                    //        new MarkupTagHelperBlock("person",
+                    //            TagMode.SelfClosing,
+                    //            attributes: new List<TagHelperAttributeNode>
+                    //            {
+                    //                new TagHelperAttributeNode(
+                    //                    "birthday",
+                    //                    factory.CodeMarkup("DateTime.Now"))
+                    //            }))
+                    //},
+                    //{
+                    //    "<person age=\"@DateTime.Now.Year\" />",
+                    //    new MarkupBlock(
+                    //        new MarkupTagHelperBlock("person",
+                    //            TagMode.SelfClosing,
+                    //            attributes: new List<TagHelperAttributeNode>
+                    //            {
+                    //                new TagHelperAttributeNode(
+                    //                    "age",
+                    //                    new MarkupBlock(
+                    //                        new MarkupBlock(
+                    //                            new ExpressionBlock(
+                    //                                factory.CodeTransition(),
+                    //                                factory
+                    //                                    .CSharpCodeMarkup("DateTime.Now.Year")
+                    //                                    .With(new ExpressionChunkGenerator())))))
+                    //            }))
+                    //},
+                    //{
+                    //    "<person age=\" @DateTime.Now.Year\" />",
+                    //    new MarkupBlock(
+                    //        new MarkupTagHelperBlock("person",
+                    //            TagMode.SelfClosing,
+                    //            attributes: new List<TagHelperAttributeNode>
+                    //            {
+                    //                new TagHelperAttributeNode(
+                    //                    "age",
+                    //                    new MarkupBlock(
+                    //                        new MarkupBlock(
+                    //                            factory.CodeMarkup(" "),
+                    //                            new ExpressionBlock(
+                    //                                factory.CSharpCodeMarkup("@"),
+                    //                                factory
+                    //                                    .CSharpCodeMarkup("DateTime.Now.Year")
+                    //                                    .With(new ExpressionChunkGenerator())))))
+                    //            }))
+                    //},
+                    //{
+                    //    "<person name=\"John\" />",
+                    //    new MarkupBlock(
+                    //        new MarkupTagHelperBlock("person",
+                    //            TagMode.SelfClosing,
+                    //            attributes: new List<TagHelperAttributeNode>
+                    //            {
+                    //                new TagHelperAttributeNode("name", factory.Markup("John"))
+                    //            }))
+                    //},
+                    //{
+                    //    "<person name=\"Time: @DateTime.Now\" />",
+                    //    new MarkupBlock(
+                    //        new MarkupTagHelperBlock("person",
+                    //            TagMode.SelfClosing,
+                    //            attributes: new List<TagHelperAttributeNode>
+                    //            {
+                    //                new TagHelperAttributeNode(
+                    //                    "name",
+                    //                    new MarkupBlock(factory.Markup("Time:"), dateTimeNow))
+                    //            }))
+                    //},
+                    //{
+                    //    "<person age=\"1 + @value + 2\" birthday='(bool)@Bag[\"val\"] ? @@DateTime : @DateTime.Now'/>",
+                    //    new MarkupBlock(
+                    //        new MarkupTagHelperBlock("person",
+                    //            TagMode.SelfClosing,
+                    //            attributes: new List<TagHelperAttributeNode>
+                    //            {
+                    //                new TagHelperAttributeNode(
+                    //                    "age",
+                    //                    new MarkupBlock(
+                    //                        factory.CodeMarkup("1"),
+                    //                        factory.CodeMarkup(" +"),
+                    //                        new MarkupBlock(
+                    //                            factory.CodeMarkup(" "),
+                    //                            new ExpressionBlock(
+                    //                                factory.CSharpCodeMarkup("@"),
+                    //                                factory.CSharpCodeMarkup("value")
+                    //                                    .With(new ExpressionChunkGenerator()))),
+                    //                        factory.CodeMarkup(" +"),
+                    //                        factory.CodeMarkup(" 2"))),
+                    //                new TagHelperAttributeNode(
+                    //                    "birthday",
+                    //                    new MarkupBlock(
+                    //                        factory.CodeMarkup("(bool)"),
+                    //                        new MarkupBlock(
+                    //                            new ExpressionBlock(
+                    //                                factory.CSharpCodeMarkup("@"),
+                    //                                factory
+                    //                                    .CSharpCodeMarkup("Bag[\"val\"]")
+                    //                                    .With(new ExpressionChunkGenerator()))),
+                    //                        factory.CodeMarkup(" ?"),
+                    //                        new MarkupBlock(
+                    //                            factory.CodeMarkup(" @")
+                    //                                .As(SpanKind.Code),
+                    //                            factory.CodeMarkup("@")
+                    //                                .As(SpanKind.Code)
+                    //                                .With(SpanChunkGenerator.Null)),
+                    //                        factory.CodeMarkup("DateTime"),
+                    //                        factory.CodeMarkup(" :"),
+                    //                        new MarkupBlock(
+                    //                            factory.CodeMarkup(" "),
+                    //                            new ExpressionBlock(
+                    //                                factory.CSharpCodeMarkup("@"),
+                    //                                factory
+                    //                                    .CSharpCodeMarkup("DateTime.Now")
+                    //                                    .With(new ExpressionChunkGenerator())))),
+                    //                    HtmlAttributeValueStyle.SingleQuotes)
+                    //            }))
+                    //},
+                    //{
+                    //    "<person age=\"12\" birthday=\"DateTime.Now\" name=\"Time: @DateTime.Now\" />",
+                    //    new MarkupBlock(
+                    //        new MarkupTagHelperBlock("person",
+                    //            TagMode.SelfClosing,
+                    //            attributes: new List<TagHelperAttributeNode>
+                    //            {
+                    //                new TagHelperAttributeNode("age", factory.CodeMarkup("12")),
+                    //                new TagHelperAttributeNode(
+                    //                    "birthday",
+                    //                    factory.CodeMarkup("DateTime.Now")),
+                    //                new TagHelperAttributeNode(
+                    //                    "name",
+                    //                    new MarkupBlock(factory.Markup("Time:"), dateTimeNow))
+                    //            }))
+                    //},
+                    //{
+                    //    "<person age=\"12\" birthday=\"DateTime.Now\" name=\"Time: @@ @DateTime.Now\" />",
+                    //    new MarkupBlock(
+                    //        new MarkupTagHelperBlock("person",
+                    //            TagMode.SelfClosing,
+                    //            attributes: new List<TagHelperAttributeNode>
+                    //            {
+                    //                new TagHelperAttributeNode("age", factory.CodeMarkup("12")),
+                    //                new TagHelperAttributeNode(
+                    //                    "birthday",
+                    //                    factory.CodeMarkup("DateTime.Now")),
+                    //                new TagHelperAttributeNode(
+                    //                    "name",
+                    //                    new MarkupBlock(
+                    //                        factory.Markup("Time:"),
+                    //                         new MarkupBlock(
+                    //                            factory.Markup(" @").Accepts(AcceptedCharacters.None),
+                    //                            factory.Markup("@")
+                    //                                .With(SpanChunkGenerator.Null)
+                    //                                .Accepts(AcceptedCharacters.None)),
+                    //                        dateTimeNow))
+                    //            }))
+                    //},
+                    //{
+                    //    "<person age=\"12\" birthday=\"DateTime.Now\" name=\"@@BoundStringAttribute\" />",
+                    //    new MarkupBlock(
+                    //        new MarkupTagHelperBlock("person",
+                    //            TagMode.SelfClosing,
+                    //            attributes: new List<TagHelperAttributeNode>
+                    //            {
+                    //                new TagHelperAttributeNode("age", factory.CodeMarkup("12")),
+                    //                new TagHelperAttributeNode(
+                    //                    "birthday",
+                    //                    factory.CodeMarkup("DateTime.Now")),
+                    //                new TagHelperAttributeNode(
+                    //                    "name",
+                    //                    new MarkupBlock(
+                    //                         new MarkupBlock(
+                    //                            factory.Markup("@").Accepts(AcceptedCharacters.None),
+                    //                            factory.Markup("@")
+                    //                                .With(SpanChunkGenerator.Null)
+                    //                                .Accepts(AcceptedCharacters.None)),
+                    //                        factory.Markup("BoundStringAttribute")))
+                    //            }))
+                    //},
                     {
-                        "<person age=\"12\" />",
-                        new MarkupBlock(
-                            new MarkupTagHelperBlock("person",
-                                TagMode.SelfClosing,
-                                attributes: new List<TagHelperAttributeNode>
-                                {
-                                    new TagHelperAttributeNode("age", factory.CodeMarkup("12"))
-                                }))
-                    },
-                    {
-                        "<person birthday=\"DateTime.Now\" />",
-                        new MarkupBlock(
-                            new MarkupTagHelperBlock("person",
-                                TagMode.SelfClosing,
-                                attributes: new List<TagHelperAttributeNode>
-                                {
-                                    new TagHelperAttributeNode(
-                                        "birthday",
-                                        factory.CodeMarkup("DateTime.Now"))
-                                }))
-                    },
-                    {
-                        "<person age=\"@DateTime.Now.Year\" />",
-                        new MarkupBlock(
-                            new MarkupTagHelperBlock("person",
-                                TagMode.SelfClosing,
-                                attributes: new List<TagHelperAttributeNode>
-                                {
-                                    new TagHelperAttributeNode(
-                                        "age",
-                                        new MarkupBlock(
-                                            new MarkupBlock(
-                                                new ExpressionBlock(
-                                                    factory.CodeTransition(),
-                                                    factory
-                                                        .CSharpCodeMarkup("DateTime.Now.Year")
-                                                        .With(new ExpressionChunkGenerator())))))
-                                }))
-                    },
-                    {
-                        "<person age=\" @DateTime.Now.Year\" />",
-                        new MarkupBlock(
-                            new MarkupTagHelperBlock("person",
-                                TagMode.SelfClosing,
-                                attributes: new List<TagHelperAttributeNode>
-                                {
-                                    new TagHelperAttributeNode(
-                                        "age",
-                                        new MarkupBlock(
-                                            new MarkupBlock(
-                                                factory.CodeMarkup(" "),
-                                                new ExpressionBlock(
-                                                    factory.CSharpCodeMarkup("@"),
-                                                    factory
-                                                        .CSharpCodeMarkup("DateTime.Now.Year")
-                                                        .With(new ExpressionChunkGenerator())))))
-                                }))
-                    },
-                    {
-                        "<person name=\"John\" />",
-                        new MarkupBlock(
-                            new MarkupTagHelperBlock("person",
-                                TagMode.SelfClosing,
-                                attributes: new List<TagHelperAttributeNode>
-                                {
-                                    new TagHelperAttributeNode("name", factory.Markup("John"))
-                                }))
-                    },
-                    {
-                        "<person name=\"Time: @DateTime.Now\" />",
-                        new MarkupBlock(
-                            new MarkupTagHelperBlock("person",
-                                TagMode.SelfClosing,
-                                attributes: new List<TagHelperAttributeNode>
-                                {
-                                    new TagHelperAttributeNode(
-                                        "name",
-                                        new MarkupBlock(factory.Markup("Time:"), dateTimeNow))
-                                }))
-                    },
-                    {
-                        "<person age=\"1 + @value + 2\" birthday='(bool)@Bag[\"val\"] ? @@DateTime : @DateTime.Now'/>",
-                        new MarkupBlock(
-                            new MarkupTagHelperBlock("person",
-                                TagMode.SelfClosing,
-                                attributes: new List<TagHelperAttributeNode>
-                                {
-                                    new TagHelperAttributeNode(
-                                        "age",
-                                        new MarkupBlock(
-                                            factory.CodeMarkup("1"),
-                                            factory.CodeMarkup(" +"),
-                                            new MarkupBlock(
-                                                factory.CodeMarkup(" "),
-                                                new ExpressionBlock(
-                                                    factory.CSharpCodeMarkup("@"),
-                                                    factory.CSharpCodeMarkup("value")
-                                                        .With(new ExpressionChunkGenerator()))),
-                                            factory.CodeMarkup(" +"),
-                                            factory.CodeMarkup(" 2"))),
-                                    new TagHelperAttributeNode(
-                                        "birthday",
-                                        new MarkupBlock(
-                                            factory.CodeMarkup("(bool)"),
-                                            new MarkupBlock(
-                                                new ExpressionBlock(
-                                                    factory.CSharpCodeMarkup("@"),
-                                                    factory
-                                                        .CSharpCodeMarkup("Bag[\"val\"]")
-                                                        .With(new ExpressionChunkGenerator()))),
-                                            factory.CodeMarkup(" ?"),
-                                            new MarkupBlock(
-                                                factory.CodeMarkup(" @")
-                                                    .As(SpanKind.Code),
-                                                factory.CodeMarkup("@")
-                                                    .As(SpanKind.Code)
-                                                    .With(SpanChunkGenerator.Null)),
-                                            factory.CodeMarkup("DateTime"),
-                                            factory.CodeMarkup(" :"),
-                                            new MarkupBlock(
-                                                factory.CodeMarkup(" "),
-                                                new ExpressionBlock(
-                                                    factory.CSharpCodeMarkup("@"),
-                                                    factory
-                                                        .CSharpCodeMarkup("DateTime.Now")
-                                                        .With(new ExpressionChunkGenerator())))),
-                                        HtmlAttributeValueStyle.SingleQuotes)
-                                }))
-                    },
-                    {
-                        "<person age=\"12\" birthday=\"DateTime.Now\" name=\"Time: @DateTime.Now\" />",
-                        new MarkupBlock(
-                            new MarkupTagHelperBlock("person",
-                                TagMode.SelfClosing,
-                                attributes: new List<TagHelperAttributeNode>
-                                {
-                                    new TagHelperAttributeNode("age", factory.CodeMarkup("12")),
-                                    new TagHelperAttributeNode(
-                                        "birthday",
-                                        factory.CodeMarkup("DateTime.Now")),
-                                    new TagHelperAttributeNode(
-                                        "name",
-                                        new MarkupBlock(factory.Markup("Time:"), dateTimeNow))
-                                }))
-                    },
-                    {
-                        "<person age=\"12\" birthday=\"DateTime.Now\" name=\"Time: @@ @DateTime.Now\" />",
-                        new MarkupBlock(
-                            new MarkupTagHelperBlock("person",
-                                TagMode.SelfClosing,
-                                attributes: new List<TagHelperAttributeNode>
-                                {
-                                    new TagHelperAttributeNode("age", factory.CodeMarkup("12")),
-                                    new TagHelperAttributeNode(
-                                        "birthday",
-                                        factory.CodeMarkup("DateTime.Now")),
-                                    new TagHelperAttributeNode(
-                                        "name",
-                                        new MarkupBlock(
-                                            factory.Markup("Time:"),
-                                             new MarkupBlock(
-                                                factory.Markup(" @").Accepts(AcceptedCharacters.None),
-                                                factory.Markup("@")
-                                                    .With(SpanChunkGenerator.Null)
-                                                    .Accepts(AcceptedCharacters.None)),
-                                            dateTimeNow))
-                                }))
-                    },
-                    {
-                        "<person age=\"12\" birthday=\"DateTime.Now\" name=\"@@BoundStringAttribute\" />",
-                        new MarkupBlock(
-                            new MarkupTagHelperBlock("person",
-                                TagMode.SelfClosing,
-                                attributes: new List<TagHelperAttributeNode>
-                                {
-                                    new TagHelperAttributeNode("age", factory.CodeMarkup("12")),
-                                    new TagHelperAttributeNode(
-                                        "birthday",
-                                        factory.CodeMarkup("DateTime.Now")),
-                                    new TagHelperAttributeNode(
-                                        "name",
-                                        new MarkupBlock(
-                                             new MarkupBlock(
-                                                factory.Markup("@").Accepts(AcceptedCharacters.None),
-                                                factory.Markup("@")
-                                                    .With(SpanChunkGenerator.Null)
-                                                    .Accepts(AcceptedCharacters.None)),
-                                            factory.Markup("BoundStringAttribute")))
-                                }))
-                    },
-                    {
-                        "<person age=\"@@@(11+1)\" birthday=\"DateTime.Now\" name=\"Time: @DateTime.Now\" />",
+                        "<person age=\"@@(11+1)\" birthday=\"DateTime.Now\" name=\"Time: @DateTime.Now\" />",
                         new MarkupBlock(
                             new MarkupTagHelperBlock("person",
                                 TagMode.SelfClosing,

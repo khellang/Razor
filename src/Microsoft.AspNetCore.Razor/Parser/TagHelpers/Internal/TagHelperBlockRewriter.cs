@@ -457,16 +457,25 @@ namespace Microsoft.AspNetCore.Razor.Parser.TagHelpers.Internal
                         {
                             // do nothing.
                         }
+                        else if (isFirstSpan && span.Kind == SpanKind.Markup && span.Content == "@")
+                        {
+                            var spanBuilder = new SpanBuilder(span);
+                            spanBuilder.Kind = SpanKind.Transition;
+                            spanBuilder.ChunkGenerator = null;
+                            span = spanBuilder.Build();
+                        }
                         else
                         {
                             var spanBuilder = new SpanBuilder(span);
 
-                            if (parentBlock.Type == BlockType.Expression &&
+                            if ((parentBlock.Type == BlockType.Expression &&
                                 (spanBuilder.Kind == SpanKind.Transition ||
-                                spanBuilder.Kind == SpanKind.MetaCode))
+                                spanBuilder.Kind == SpanKind.MetaCode)) ||
+                                (parentBlock.Type == BlockType.Markup &&
+                                span.Content == "@"))
                             {
                                 // Change to a MarkupChunkGenerator so that the '@' \ parenthesis is generated as part of the output.
-                                spanBuilder.ChunkGenerator = new MarkupChunkGenerator();
+                                 spanBuilder.ChunkGenerator = new MarkupChunkGenerator();
                             }
 
                             ConfigureNonStringAttribute(spanBuilder);
