@@ -8,18 +8,24 @@ using System.Text;
 
 namespace Microsoft.AspNetCore.Razor.Evolution.Legacy
 {
-    internal abstract partial class Tokenizer<TSymbol, TSymbolType> : ITokenizer
+    internal abstract class LanguageTokenizer
+    {
+        public abstract ISymbol NextToken();
+    }
+
+    internal abstract partial class LanguageTokenizer<TSymbol, TSymbolType> : LanguageTokenizer
         where TSymbolType : struct
         where TSymbol : SymbolBase<TSymbolType>
     {
-        protected Tokenizer(ITextDocument source)
+        private readonly Tokenizer _tokenizer;
+
+        protected LanguageTokenizer(Tokenizer tokenizer)
         {
-            if (source == null)
+            if (tokenizer == null)
             {
-                throw new ArgumentNullException(nameof(source));
+                throw new ArgumentNullException(nameof(tokenizer));
             }
 
-            Source = source;
             Buffer = new StringBuilder();
             CurrentErrors = new List<RazorError>();
             StartSymbol();
@@ -33,7 +39,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution.Legacy
 
         protected TSymbol CurrentSymbol { get; private set; }
 
-        public ITextDocument Source { get; private set; }
+        public ITextDocument Source => _tokenizer.Source;
 
         protected StringBuilder Buffer { get; private set; }
 
@@ -68,12 +74,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution.Legacy
 
         protected abstract StateResult Dispatch();
 
-        ISymbol ITokenizer.NextSymbol()
-        {
-            return NextSymbol();
-        }
-
-        public virtual TSymbol NextSymbol()
+        public override TSymbol NextSymbol()
         {
             // Post-Condition: Buffer should be empty at the start of Next()
             Debug.Assert(Buffer.Length == 0);
