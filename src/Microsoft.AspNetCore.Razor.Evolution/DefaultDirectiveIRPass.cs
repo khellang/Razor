@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution
     {
         RazorParserOptions _parserOptions;
 
-        public override int Order => 150;
+        public override int Order => RazorIRPass.DefaultDirectiveClassifierOrder;
 
         protected override void OnIntialized(RazorCodeDocument codeDocument)
         {

@@ -1466,6 +1466,8 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
 
         private class ApiSetsIRTestAdapter : RazorIRPassBase
         {
+            public override int Order => RazorIRPass.LoweringOrder;
+
             public override DocumentIRNode ExecuteCore(DocumentIRNode irDocument)
             {
                 var walker = new ApiSetsIRWalker();

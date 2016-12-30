@@ -303,6 +303,9 @@ namespace Microsoft.AspNetCore.Razor.Evolution.Intermediate
 
             var irDocument = codeDocument.GetIRDocument();
             Assert.NotNull(irDocument);
+
+            // These tests depend on the document->namespace->class structure.
+            irDocument = new DefaultDocumentClassifier() { Engine = engine, }.Execute(codeDocument, irDocument);
             return irDocument;
         }
 
