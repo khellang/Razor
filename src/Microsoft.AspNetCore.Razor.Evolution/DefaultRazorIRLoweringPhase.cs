@@ -222,26 +222,11 @@ namespace Microsoft.AspNetCore.Razor.Evolution
                     }
                 }
 
-                var currentChildren = Builder.Current.Children;
-                if (currentChildren.Count > 0 && currentChildren[currentChildren.Count - 1] is HtmlContentIRNode)
+                Builder.Add(new HtmlContentIRNode()
                 {
-                    var existingHtmlContent = (HtmlContentIRNode)currentChildren[currentChildren.Count - 1];
-                    existingHtmlContent.Content = string.Concat(existingHtmlContent.Content, span.Content);
-                    existingHtmlContent.SourceRange = new MappingLocation(
-                        existingHtmlContent.SourceRange.AbsoluteIndex,
-                        existingHtmlContent.SourceRange.LineIndex,
-                        existingHtmlContent.SourceRange.CharacterIndex,
-                        existingHtmlContent.SourceRange.ContentLength + span.Content.Length,
-                        existingHtmlContent.SourceRange.FilePath);
-                }
-                else
-                {
-                    Builder.Add(new HtmlContentIRNode()
-                    {
-                        Content = span.Content,
-                        SourceRange = BuildSourceRangeFromNode(span),
-                    });
-                }
+                    Content = span.Content,
+                    SourceRange = BuildSourceRangeFromNode(span),
+                });
             }
 
             public override void VisitImportSpan(AddImportChunkGenerator chunkGenerator, Span span)
@@ -249,7 +234,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution
                 var namespaceImport = chunkGenerator.Namespace.Trim();
 
                 // Track seen namespaces so we don't add duplicates from options.
-                if (Namespaces.Add(namespaceImport)) 
+                if (Namespaces.Add(namespaceImport))
                 {
                     Builder.Add(new UsingStatementIRNode()
                     {

@@ -61,6 +61,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution
             // IR Passes
             builder.Features.Add(new DefaultDocumentClassifier());
             builder.Features.Add(new DefaultDirectiveIRPass());
+            builder.Features.Add(new HtmlContentMergeIRPass());
         }
 
         internal static void AddRuntimeDefaults(IRazorEngineBuilder builder)
