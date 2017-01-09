@@ -189,22 +189,53 @@ namespace Microsoft.AspNetCore.Razor.Evolution.Legacy
         /// Writes a <c>#line</c> pragma directive for the line number at the specified <paramref name="location"/>.
         /// </summary>
         /// <param name="location">The location to generate the line pragma for.</param>
-        /// <param name="file">The file to generate the line pragma for.</param>
         /// <returns>The current instance of <see cref="CSharpCodeWriter"/>.</returns>
-        public CSharpCodeWriter WriteLineNumberDirective(SourceSpan location, string file)
+        public CSharpCodeWriter WriteLineNumberDirective(SourceSpan location)
         {
-            if (location.FilePath != null)
-            {
-                file = location.FilePath;
-            }
-
             if (Builder.Length >= NewLine.Length && !IsAfterNewLine)
             {
                 WriteLine();
             }
 
+            var indent = CurrentIndent;
+            ResetIndent();
+
             var lineNumberAsString = (location.LineIndex + 1).ToString(CultureInfo.InvariantCulture);
-            return Write("#line ").Write(lineNumberAsString).Write(" \"").Write(file).WriteLine("\"");
+            Write("#line ");
+            Write(lineNumberAsString);
+            Write(" \"");
+            Write(location.FilePath);
+            WriteLine("\"");
+
+            SetIndent(indent);
+
+            return this;
+        }
+
+        public CSharpCodeWriter WriteEndLineNumberDirective()
+        {
+            // Need to add an additional line at the end IF there wasn't one already written.
+            // This is needed to work with the C# editor's handling of #line ...
+            var endsWithNewline = Builder.Length > 0 && Builder[Builder.Length - 1] == '\n';
+
+            // Always write at least 1 empty line to potentially separate code from pragmas.
+            WriteLine();
+
+            // Check if the previous empty line wasn't enough to separate code from pragmas.
+            if (!endsWithNewline)
+            {
+                WriteLine();
+            }
+
+            var indent = CurrentIndent;
+            ResetIndent();
+
+            WriteLineDefaultDirective();
+            WriteLineHiddenDirective();
+
+            SetIndent(indent);
+
+            return this;
         }
 
         public CSharpCodeWriter WriteStartMethodInvocation(string methodName)

@@ -30,6 +30,11 @@ namespace Microsoft.AspNetCore.Razor.Evolution.Intermediate
             return VisitDefault(node);
         }
 
+        public virtual TResult VisitExtension(ExtensionIRNode node)
+        {
+            return VisitDefault(node);
+        }
+
         public virtual TResult VisitTemplate(TemplateIRNode node)
         {
             return VisitDefault(node);

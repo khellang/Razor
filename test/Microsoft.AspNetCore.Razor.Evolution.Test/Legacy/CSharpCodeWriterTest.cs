@@ -7,39 +7,19 @@ namespace Microsoft.AspNetCore.Razor.Evolution.Legacy
 {
     public class CSharpCodeWriterTest
     {
-        [Fact]
-        public void WriteLineNumberDirective_UsesFilePath_WhenFileInSourceLocationIsNull()
-        {
-            // Arrange
-            var filePath = "some-path";
-            var writer = new CSharpCodeWriter();
-            var expected = $"#line 5 \"{filePath}\"" + writer.NewLine;
-            var sourceLocation = new SourceLocation(10, 4, 3);
-            var mappingLocation = new SourceSpan(sourceLocation, 9);
-
-            // Act
-            writer.WriteLineNumberDirective(mappingLocation, filePath);
-            var code = writer.GenerateCode();
-
-            // Assert
-            Assert.Equal(expected, code);
-        }
-
         [Theory]
         [InlineData("")]
         [InlineData("source-location-file-path")]
-        public void WriteLineNumberDirective_UsesSourceLocationFilePath_IfAvailable(
-            string sourceLocationFilePath)
+        public void WriteLineNumberDirective_UsesSourceSpanFilePath(string filePath)
         {
             // Arrange
-            var filePath = "some-path";
             var writer = new CSharpCodeWriter();
-            var expected = $"#line 5 \"{sourceLocationFilePath}\"" + writer.NewLine;
-            var sourceLocation = new SourceLocation(sourceLocationFilePath, 10, 4, 3);
+            var expected = $"#line 5 \"{filePath}\"" + writer.NewLine;
+            var sourceLocation = new SourceLocation(filePath, 10, 4, 3);
             var mappingLocation = new SourceSpan(sourceLocation, 9);
 
             // Act
-            writer.WriteLineNumberDirective(mappingLocation, filePath);
+            writer.WriteLineNumberDirective(mappingLocation);
             var code = writer.GenerateCode();
 
             // Assert
