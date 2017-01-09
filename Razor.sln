@@ -32,6 +32,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.Remo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.LanguageServices.Razor", "src\Microsoft.VisualStudio.LanguageServices.Razor\Microsoft.VisualStudio.LanguageServices.Razor.csproj", "{5520C4B7-887E-430F-B814-00D7F3631D99}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.RazorExtension", "src\Microsoft.VisualStudio.RazorExtension\Microsoft.VisualStudio.RazorExtension.csproj", "{D66B45B5-CBFD-4947-81F1-F30AB80EA992}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -162,6 +164,18 @@ Global
 		{5520C4B7-887E-430F-B814-00D7F3631D99}.Release|x64.Build.0 = Release|x64
 		{5520C4B7-887E-430F-B814-00D7F3631D99}.Release|x86.ActiveCfg = Release|x86
 		{5520C4B7-887E-430F-B814-00D7F3631D99}.Release|x86.Build.0 = Release|x86
+		{D66B45B5-CBFD-4947-81F1-F30AB80EA992}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D66B45B5-CBFD-4947-81F1-F30AB80EA992}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D66B45B5-CBFD-4947-81F1-F30AB80EA992}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D66B45B5-CBFD-4947-81F1-F30AB80EA992}.Debug|x64.Build.0 = Debug|Any CPU
+		{D66B45B5-CBFD-4947-81F1-F30AB80EA992}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D66B45B5-CBFD-4947-81F1-F30AB80EA992}.Debug|x86.Build.0 = Debug|Any CPU
+		{D66B45B5-CBFD-4947-81F1-F30AB80EA992}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D66B45B5-CBFD-4947-81F1-F30AB80EA992}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D66B45B5-CBFD-4947-81F1-F30AB80EA992}.Release|x64.ActiveCfg = Release|Any CPU
+		{D66B45B5-CBFD-4947-81F1-F30AB80EA992}.Release|x64.Build.0 = Release|Any CPU
+		{D66B45B5-CBFD-4947-81F1-F30AB80EA992}.Release|x86.ActiveCfg = Release|Any CPU
+		{D66B45B5-CBFD-4947-81F1-F30AB80EA992}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -177,5 +191,6 @@ Global
 		{0F265874-C592-448B-BC4F-3430AB03E0DC} = {3C0D6505-79B3-49D0-B4C3-176F0F1836ED}
 		{4EAD959D-73B2-4FB2-B46F-16CEB1EF49D4} = {3C0D6505-79B3-49D0-B4C3-176F0F1836ED}
 		{5520C4B7-887E-430F-B814-00D7F3631D99} = {3C0D6505-79B3-49D0-B4C3-176F0F1836ED}
+		{D66B45B5-CBFD-4947-81F1-F30AB80EA992} = {3C0D6505-79B3-49D0-B4C3-176F0F1836ED}
 	EndGlobalSection
 EndGlobal
