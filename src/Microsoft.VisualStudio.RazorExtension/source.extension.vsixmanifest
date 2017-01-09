@@ -19,12 +19,14 @@
   <Assets>
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="Microsoft.VisualStudio.LanguageServices.Razor" Path="|Microsoft.VisualStudio.LanguageServices.Razor|" AssemblyName="|Microsoft.VisualStudio.LanguageServices.Razor;AssemblyName|" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Microsoft.VisualStudio.LanguageServices.Razor" Path="|Microsoft.VisualStudio.LanguageServices.Razor|" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="Microsoft.CodeAnalysis.Remote.Razor" Path="|Microsoft.CodeAnalysis.Remote.Razor|" AssemblyName="|Microsoft.CodeAnalysis.Remote.Razor;AssemblyName|" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="razorLanguageService.servicehub.service.json" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="Microsoft.CodeAnalysis.Razor.Workspaces" Path="|Microsoft.CodeAnalysis.Razor.Workspaces|" AssemblyName="|Microsoft.CodeAnalysis.Razor.Workspaces;AssemblyName|" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Microsoft.CodeAnalysis.Razor.Workspaces" Path="|Microsoft.CodeAnalysis.Razor.Workspaces|" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="Microsoft.AspNetCore.Razor.Evolution" Path="|Microsoft.AspNetCore.Razor.Evolution|" AssemblyName="|Microsoft.AspNetCore.Razor.Evolution;AssemblyName|" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.AspNetCore.Razor.Evolution.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.AspNetCore.Razor.Evolution.dll" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.CodeAnalysis.Razor.Workspaces.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.Razor.Workspaces.dll" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.CodeAnalysis.Remote.Razor.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.Remote.Razor.dll" />
+    <Asset Type="Microsoft.VisualStudio.Assembly"  Path="Microsoft.VisualStudio.LanguageServices.Razor.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent"  Path="Microsoft.VisualStudio.LanguageServices.Razor.dll" />
   </Assets>
 </PackageManifest>
