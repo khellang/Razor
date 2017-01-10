@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             var solution = await GetSolutionAsync().ConfigureAwait(false);
             var project = solution.GetProject(projectId);
 
-            var resolver = new DefaultTagHelperResolver();
+            var resolver = new DefaultTagHelperResolver(designTime: true);
             var results = await resolver.GetTagHelpersAsync(project, cancellationToken).ConfigureAwait(false);
 
             return results;

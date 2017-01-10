@@ -32,25 +32,30 @@ namespace Microsoft.CodeAnalysis.Razor
         private readonly INamedTypeSymbol _htmlAttributeNameAttributeSymbol;
         private readonly INamedTypeSymbol _htmlAttributeNotBoundAttributeSymbol;
         private readonly INamedTypeSymbol _htmlTargetElementAttributeSymbol;
+        private readonly INamedTypeSymbol _outputElementHintAttributeSymbol;
         private readonly INamedTypeSymbol _iDictionarySymbol;
         private readonly INamedTypeSymbol _restrictChildrenAttributeSymbol;
 
         public static ICollection<char> InvalidNonWhitespaceNameCharacters { get; } = new HashSet<char>(
             new[] { '@', '!', '<', '/', '?', '[', '>', ']', '=', '"', '\'', '*' });
 
-        public DefaultTagHelperDescriptorFactory(Compilation compilation)
+        public DefaultTagHelperDescriptorFactory(Compilation compilation, bool designTime)
         {
             Compilation = compilation;
+            DesignTime = designTime;
 
             _htmlAttributeNameAttributeSymbol = compilation.GetTypeByMetadataName(TagHelperTypes.HtmlAttributeNameAttribute);
             _htmlAttributeNotBoundAttributeSymbol = compilation.GetTypeByMetadataName(TagHelperTypes.HtmlAttributeNotBoundAttribute);
             _htmlTargetElementAttributeSymbol = compilation.GetTypeByMetadataName(TagHelperTypes.HtmlTargetElementAttribute);
+            _outputElementHintAttributeSymbol = compilation.GetTypeByMetadataName(TagHelperTypes.OutputElementHintAttribute);
             _restrictChildrenAttributeSymbol = compilation.GetTypeByMetadataName(TagHelperTypes.RestrictChildrenAttribute);
 
             _iDictionarySymbol = Compilation.GetTypeByMetadataName(TagHelperTypes.IDictionary);
         }
 
         protected Compilation Compilation { get; }
+
+        protected bool DesignTime { get; }
 
         /// <inheritdoc />
         public virtual IEnumerable<TagHelperDescriptor> CreateDescriptors(
@@ -98,7 +103,30 @@ namespace Microsoft.CodeAnalysis.Razor
             IEnumerable<AttributeData> targetElementAttributes,
             IEnumerable<string> allowedChildren)
         {
-            TagHelperDesignTimeDescriptor typeDesignTimeDescriptor = null;
+            TagHelperDesignTimeDescriptor designTimeDescriptor = null;
+            if (DesignTime)
+            {
+                XmlMemberDocumentation documentation = null;
+                var xml = type.GetDocumentationCommentXml();
+                if (xml != null)
+                {
+                    documentation = new XmlMemberDocumentation(xml);
+                }
+
+                string outputElementHint = null;
+                var outputElementHintAttribute = type.GetAttributes().Where(a => a.AttributeClass == _outputElementHintAttributeSymbol).FirstOrDefault();
+                if (outputElementHintAttribute != null)
+                {
+                    outputElementHint = (string)(outputElementHintAttribute.ConstructorArguments[0]).Value;
+                }
+
+                designTimeDescriptor = new TagHelperDesignTimeDescriptor()
+                {
+                    OutputElementHint = outputElementHint,
+                    Remarks = documentation?.GetRemarks(),
+                    Summary = documentation?.GetSummary(),
+                };
+            }
 
             var typeName = GetFullName(type);
 
@@ -123,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Razor
                         allowedChildren: allowedChildren,
                         tagStructure: default(TagStructure),
                         parentTag: null,
-                        designTimeDescriptor: typeDesignTimeDescriptor)
+                        designTimeDescriptor: designTimeDescriptor)
                 };
             }
 
@@ -135,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Razor
                         attributeDescriptors,
                         attribute,
                         allowedChildren,
-                        typeDesignTimeDescriptor));
+                        designTimeDescriptor));
         }
 
         private IEnumerable<string> GetAllowedChildren(INamedTypeSymbol type, ErrorSink errorSink)
@@ -687,6 +715,23 @@ namespace Microsoft.CodeAnalysis.Razor
             bool isIndexer,
             bool isStringProperty)
         {
+            TagHelperAttributeDesignTimeDescriptor designTimeDescriptor = null;
+            if (DesignTime)
+            {
+                XmlMemberDocumentation documentation = null;
+                var xml = property.GetDocumentationCommentXml();
+                if (xml != null)
+                {
+                    documentation = new XmlMemberDocumentation(xml);
+                }
+
+                designTimeDescriptor = new TagHelperAttributeDesignTimeDescriptor()
+                {
+                    Remarks = documentation?.GetRemarks(),
+                    Summary = documentation?.GetSummary(),
+                };
+            }
+
             return new TagHelperAttributeDescriptor
             {
                 Name = attributeName,

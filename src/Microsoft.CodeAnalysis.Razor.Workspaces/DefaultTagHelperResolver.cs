@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Evolution;
 using Microsoft.AspNetCore.Razor.Evolution.Legacy;
 
@@ -11,10 +9,15 @@ namespace Microsoft.CodeAnalysis.Razor
 {
     internal class DefaultTagHelperResolver : TagHelperResolver
     {
-        public override async Task<IReadOnlyList<TagHelperDescriptor>> GetTagHelpersAsync(Project project, CancellationToken cancellationToken = default(CancellationToken))
+        public DefaultTagHelperResolver(bool designTime)
         {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            DesignTime = designTime;
+        }
 
+        protected bool DesignTime { get; }
+
+        public override IReadOnlyList<TagHelperDescriptor> GetTagHelpers(Compilation compilation)
+        {
             var results = new List<TagHelperDescriptor>();
 
             // If ITagHelper isn't defined, then we couldn't possibly find anything.
@@ -38,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Razor
             }
 
             var errors = new ErrorSink();
-            var factory = new DefaultTagHelperDescriptorFactory(compilation);
+            var factory = new DefaultTagHelperDescriptorFactory(compilation, DesignTime);
 
             foreach (var type in types)
             {

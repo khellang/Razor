@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public const string HtmlTargetElementAttribute = "Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute";
 
+        public const string OutputElementHintAttribute = "Microsoft.AspNetCore.Razor.TagHelpers.OutputElementHintAttribute";
+
         public const string RestrictChildrenAttribute = "Microsoft.AspNetCore.Razor.TagHelpers.RestrictChildrenAttribute";
 
         public static class HtmlAttributeName
