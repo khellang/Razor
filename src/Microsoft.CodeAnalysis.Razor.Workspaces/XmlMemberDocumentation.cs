@@ -4,7 +4,9 @@
 using System;
 using System.Diagnostics;
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Razor
 {
@@ -17,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public XmlMemberDocumentation(string content)
         {
-            if (content == null)
+            if (string.IsNullOrEmpty(content))
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentException(Resources.FormatArgument_Cannot_Be_Null_Or_Empty(nameof(content)));
             }
 
             // the structure of the XML is defined by: https://msdn.microsoft.com/en-us/library/fsbx0t7x.aspx

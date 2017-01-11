@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Razor
             {
                 XmlMemberDocumentation documentation = null;
                 var xml = type.GetDocumentationCommentXml();
-                if (xml != null)
+                if (!string.IsNullOrEmpty(xml))
                 {
                     documentation = new XmlMemberDocumentation(xml);
                 }
@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis.Razor
             {
                 XmlMemberDocumentation documentation = null;
                 var xml = property.GetDocumentationCommentXml();
-                if (xml != null)
+                if (!string.IsNullOrEmpty(xml))
                 {
                     documentation = new XmlMemberDocumentation(xml);
                 }
