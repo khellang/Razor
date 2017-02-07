@@ -139,7 +139,8 @@ namespace Microsoft.AspNetCore.Razor.Evolution
                     TagHelperTypeName = node.TagHelperTypeName,
                     PropertyName = node.PropertyName,
                     Descriptor = node.Descriptor,
-                    Parent = node.Parent
+                    Parent = node.Parent,
+                    IsIndexerNameMatch = node.IsIndexerNameMatch,
                 };
 
                 var nodeIndex = node.Parent.Children.IndexOf(node);

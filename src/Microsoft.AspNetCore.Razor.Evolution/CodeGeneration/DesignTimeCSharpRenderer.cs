@@ -189,7 +189,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution.CodeGeneration
         {
             var tagHelperVariableName = GetTagHelperVariableName(node.TagHelperTypeName);
             var tagHelperRenderingContext = Context.TagHelperRenderingContext;
-            var propertyValueAccessor = GetTagHelperPropertyAccessor(tagHelperVariableName, node.AttributeName, node.Descriptor);
+            var propertyValueAccessor = GetTagHelperPropertyAccessor(node.IsIndexerNameMatch, tagHelperVariableName, node.AttributeName, node.Descriptor);
 
             string previousValueAccessor;
             if (tagHelperRenderingContext.RenderedBoundAttributes.TryGetValue(node.AttributeName, out previousValueAccessor))

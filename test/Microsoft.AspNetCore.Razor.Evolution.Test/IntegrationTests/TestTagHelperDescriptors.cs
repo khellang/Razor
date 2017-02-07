@@ -39,13 +39,13 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         AssemblyName = "TestAssembly",
                         Attributes = new[]
                         {
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "value",
                                 PropertyName = "FooProp",
                                 TypeName = "System.String"
                             },
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "bound",
                                 PropertyName = "BoundProp",
@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         AssemblyName = "TestAssembly",
                         RequiredAttributes = new[]
                         {
-                            new TagHelperRequiredAttributeDescriptor
+                            new RequiredAttributeDescriptor
                             {
                                 Name = "href",
                                 NameComparison = TagHelperRequiredAttributeNameComparison.FullMatch,
@@ -89,14 +89,14 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         AssemblyName = "TestAssembly",
                         RequiredAttributes = new[]
                         {
-                            new TagHelperRequiredAttributeDescriptor
+                            new RequiredAttributeDescriptor
                             {
                                 Name = "href",
                                 NameComparison = TagHelperRequiredAttributeNameComparison.FullMatch,
                                 Value = "~/",
                                 ValueComparison = TagHelperRequiredAttributeValueComparison.PrefixMatch,
                             },
-                            new TagHelperRequiredAttributeDescriptor
+                            new RequiredAttributeDescriptor
                             {
                                 Name = "href",
                                 NameComparison = TagHelperRequiredAttributeNameComparison.FullMatch,
@@ -110,13 +110,13 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         TagName = "input",
                         TypeName = "TestNamespace.InputTagHelper",
                         AssemblyName = "TestAssembly",
-                        Attributes = new TagHelperAttributeDescriptor[]
+                        Attributes = new BoundAttributeDescriptor[]
                         {
-                            new TagHelperAttributeDescriptor("type", inputTypePropertyInfo),
+                            new BoundAttributeDescriptor("type", inputTypePropertyInfo),
                         },
                         RequiredAttributes = new[]
                         {
-                            new TagHelperRequiredAttributeDescriptor
+                            new RequiredAttributeDescriptor
                             {
                                 Name = "type",
                                 NameComparison = TagHelperRequiredAttributeNameComparison.FullMatch,
@@ -130,13 +130,13 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         TagName = "input",
                         TypeName = "TestNamespace.InputTagHelper2",
                         AssemblyName = "TestAssembly",
-                        Attributes = new TagHelperAttributeDescriptor[]
+                        Attributes = new BoundAttributeDescriptor[]
                         {
-                            new TagHelperAttributeDescriptor("type", inputTypePropertyInfo),
+                            new BoundAttributeDescriptor("type", inputTypePropertyInfo),
                         },
                         RequiredAttributes = new[]
                         {
-                            new TagHelperRequiredAttributeDescriptor
+                            new RequiredAttributeDescriptor
                             {
                                 Name = "ty",
                                 NameComparison = TagHelperRequiredAttributeNameComparison.PrefixMatch,
@@ -150,7 +150,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         AssemblyName = "TestAssembly",
                         RequiredAttributes = new[]
                         {
-                            new TagHelperRequiredAttributeDescriptor
+                            new RequiredAttributeDescriptor
                             {
                                 Name = "href",
                                 NameComparison = TagHelperRequiredAttributeNameComparison.FullMatch,
@@ -166,7 +166,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         AssemblyName = "TestAssembly",
                         RequiredAttributes = new[]
                         {
-                            new TagHelperRequiredAttributeDescriptor
+                            new RequiredAttributeDescriptor
                             {
                                 Name = "type",
                                 NameComparison = TagHelperRequiredAttributeNameComparison.FullMatch,
@@ -190,7 +190,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         AssemblyName = "TestAssembly",
                         Attributes = new[]
                         {
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "catch-all",
                                 PropertyName = "CatchAll",
@@ -206,7 +206,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         AssemblyName = "TestAssembly",
                         Attributes = new[]
                         {
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "value",
                                 PropertyName = "Value",
@@ -232,44 +232,44 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         AssemblyName = "TestAssembly",
                         Attributes = new[]
                         {
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "[item]",
                                 PropertyName = "ListItems",
                                 TypeName = typeof(List<string>).FullName
                             },
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "[(item)]",
                                 PropertyName = "ArrayItems",
                                 TypeName = typeof(string[]).FullName
                             },
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "(click)",
                                 PropertyName = "Event1",
                                 TypeName = typeof(Action).FullName
                             },
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "(^click)",
                                 PropertyName = "Event2",
                                 TypeName = typeof(Action).FullName
                             },
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "*something",
                                 PropertyName = "StringProperty1",
                                 TypeName = typeof(string).FullName
                             },
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "#local",
                                 PropertyName = "StringProperty2",
                                 TypeName = typeof(string).FullName
                             },
                         },
-                        RequiredAttributes = new[] { new TagHelperRequiredAttributeDescriptor { Name = "bound" } },
+                        RequiredAttributes = new[] { new RequiredAttributeDescriptor { Name = "bound" } },
                     },
                 };
             }
@@ -288,7 +288,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         AssemblyName = "TestAssembly",
                         Attributes = new[]
                         {
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "catchall-bound-string",
                                 PropertyName = "BoundRequiredString",
@@ -298,7 +298,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         },
                         RequiredAttributes = new[]
                         {
-                            new TagHelperRequiredAttributeDescriptor { Name = "catchall-unbound-required" }
+                            new RequiredAttributeDescriptor { Name = "catchall-unbound-required" }
                         },
                     },
                     new TagHelperDescriptor
@@ -308,14 +308,14 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         AssemblyName = "TestAssembly",
                         Attributes = new[]
                         {
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "input-bound-required-string",
                                 PropertyName = "BoundRequiredString",
                                 TypeName = typeof(string).FullName,
                                 IsStringProperty = true
                             },
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "input-bound-string",
                                 PropertyName = "BoundString",
@@ -325,8 +325,8 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         },
                         RequiredAttributes = new[]
                         {
-                            new TagHelperRequiredAttributeDescriptor { Name = "input-bound-required-string" },
-                            new TagHelperRequiredAttributeDescriptor { Name = "input-unbound-required" }
+                            new RequiredAttributeDescriptor { Name = "input-bound-required-string" },
+                            new RequiredAttributeDescriptor { Name = "input-unbound-required" }
                         },
                     }
                 };
@@ -346,7 +346,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         AssemblyName = "TestAssembly",
                         Attributes = new[]
                         {
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "bound",
                                 PropertyName = "Bound",
@@ -372,48 +372,48 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         TagName = "*",
                         TypeName = "TestNamespace.CatchAllTagHelper",
                         AssemblyName = "TestAssembly",
-                        Attributes = new TagHelperAttributeDescriptor[]
+                        Attributes = new BoundAttributeDescriptor[]
                         {
-                            new TagHelperAttributeDescriptor("type", inputTypePropertyInfo),
-                            new TagHelperAttributeDescriptor("checked", inputCheckedPropertyInfo)
+                            new BoundAttributeDescriptor("type", inputTypePropertyInfo),
+                            new BoundAttributeDescriptor("checked", inputCheckedPropertyInfo)
                         },
-                        RequiredAttributes = new[] { new TagHelperRequiredAttributeDescriptor { Name = "type" } },
+                        RequiredAttributes = new[] { new RequiredAttributeDescriptor { Name = "type" } },
                     },
                     new TagHelperDescriptor
                     {
                         TagName = "*",
                         TypeName = "TestNamespace.CatchAllTagHelper",
                         AssemblyName = "TestAssembly",
-                        Attributes = new TagHelperAttributeDescriptor[]
+                        Attributes = new BoundAttributeDescriptor[]
                         {
-                            new TagHelperAttributeDescriptor("type", inputTypePropertyInfo),
-                            new TagHelperAttributeDescriptor("checked", inputCheckedPropertyInfo)
+                            new BoundAttributeDescriptor("type", inputTypePropertyInfo),
+                            new BoundAttributeDescriptor("checked", inputCheckedPropertyInfo)
                         },
-                        RequiredAttributes = new[] { new TagHelperRequiredAttributeDescriptor { Name = "checked" } },
+                        RequiredAttributes = new[] { new RequiredAttributeDescriptor { Name = "checked" } },
                     },
                     new TagHelperDescriptor
                     {
                         TagName = "input",
                         TypeName = "TestNamespace.InputTagHelper",
                         AssemblyName = "TestAssembly",
-                        Attributes = new TagHelperAttributeDescriptor[]
+                        Attributes = new BoundAttributeDescriptor[]
                         {
-                            new TagHelperAttributeDescriptor("type", inputTypePropertyInfo),
-                            new TagHelperAttributeDescriptor("checked", inputCheckedPropertyInfo)
+                            new BoundAttributeDescriptor("type", inputTypePropertyInfo),
+                            new BoundAttributeDescriptor("checked", inputCheckedPropertyInfo)
                         },
-                        RequiredAttributes = new[] { new TagHelperRequiredAttributeDescriptor { Name = "type" } },
+                        RequiredAttributes = new[] { new RequiredAttributeDescriptor { Name = "type" } },
                     },
                     new TagHelperDescriptor
                     {
                         TagName = "input",
                         TypeName = "TestNamespace.InputTagHelper",
                         AssemblyName = "TestAssembly",
-                        Attributes = new TagHelperAttributeDescriptor[]
+                        Attributes = new BoundAttributeDescriptor[]
                         {
-                            new TagHelperAttributeDescriptor("type", inputTypePropertyInfo),
-                            new TagHelperAttributeDescriptor("checked", inputCheckedPropertyInfo)
+                            new BoundAttributeDescriptor("type", inputTypePropertyInfo),
+                            new BoundAttributeDescriptor("checked", inputCheckedPropertyInfo)
                         },
-                        RequiredAttributes = new[] { new TagHelperRequiredAttributeDescriptor { Name = "checked" } },
+                        RequiredAttributes = new[] { new RequiredAttributeDescriptor { Name = "checked" } },
                     }
                 };
             }
@@ -432,33 +432,33 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         TagName = "p",
                         TypeName = "TestNamespace.PTagHelper",
                         AssemblyName = "TestAssembly",
-                        RequiredAttributes = new[] { new TagHelperRequiredAttributeDescriptor { Name = "class" } },
+                        RequiredAttributes = new[] { new RequiredAttributeDescriptor { Name = "class" } },
                     },
                     new TagHelperDescriptor
                     {
                         TagName = "input",
                         TypeName = "TestNamespace.InputTagHelper",
                         AssemblyName = "TestAssembly",
-                        Attributes = new TagHelperAttributeDescriptor[]
+                        Attributes = new BoundAttributeDescriptor[]
                         {
-                            new TagHelperAttributeDescriptor("type", inputTypePropertyInfo)
+                            new BoundAttributeDescriptor("type", inputTypePropertyInfo)
                         },
-                        RequiredAttributes = new[] { new TagHelperRequiredAttributeDescriptor { Name = "type" } },
+                        RequiredAttributes = new[] { new RequiredAttributeDescriptor { Name = "type" } },
                     },
                     new TagHelperDescriptor
                     {
                         TagName = "input",
                         TypeName = "TestNamespace.InputTagHelper2",
                         AssemblyName = "TestAssembly",
-                        Attributes = new TagHelperAttributeDescriptor[]
+                        Attributes = new BoundAttributeDescriptor[]
                         {
-                            new TagHelperAttributeDescriptor("type", inputTypePropertyInfo),
-                            new TagHelperAttributeDescriptor("checked", inputCheckedPropertyInfo)
+                            new BoundAttributeDescriptor("type", inputTypePropertyInfo),
+                            new BoundAttributeDescriptor("checked", inputCheckedPropertyInfo)
                         },
                         RequiredAttributes = new[]
                         {
-                            new TagHelperRequiredAttributeDescriptor { Name = "type" },
-                            new TagHelperRequiredAttributeDescriptor { Name = "checked" }
+                            new RequiredAttributeDescriptor { Name = "type" },
+                            new RequiredAttributeDescriptor { Name = "checked" }
                         },
                     },
                     new TagHelperDescriptor
@@ -466,7 +466,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         TagName = "*",
                         TypeName = "TestNamespace.CatchAllTagHelper",
                         AssemblyName = "TestAssembly",
-                        RequiredAttributes = new[] { new TagHelperRequiredAttributeDescriptor { Name = "catchAll" } },
+                        RequiredAttributes = new[] { new RequiredAttributeDescriptor { Name = "catchAll" } },
                     }
                 };
             }
@@ -485,39 +485,39 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         AssemblyName = "TestAssembly",
                         Attributes = new[]
                         {
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "int-prefix-grabber",
                                 PropertyName = "IntProperty",
                                 TypeName = typeof(int).FullName
                             },
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "int-dictionary",
                                 PropertyName = "IntDictionaryProperty",
                                 TypeName = typeof(IDictionary<string, int>).FullName
                             },
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "string-dictionary",
                                 PropertyName = "StringDictionaryProperty",
                                 TypeName = "Namespace.DictionaryWithoutParameterlessConstructor<string, string>"
                             },
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "string-prefix-grabber",
                                 PropertyName = "StringProperty",
                                 TypeName = typeof(string).FullName,
                                 IsStringProperty = true
                             },
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "int-prefix-",
                                 PropertyName = "IntDictionaryProperty",
                                 TypeName = typeof(int).FullName,
                                 IsIndexer = true
                             },
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "string-prefix-",
                                 PropertyName = "StringDictionaryProperty",
@@ -534,26 +534,26 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         AssemblyName = "TestAssembly",
                         Attributes = new[]
                         {
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "int-dictionary",
                                 PropertyName = "IntDictionaryProperty",
                                 TypeName = typeof(int).FullName
                             },
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "string-dictionary",
                                 PropertyName = "StringDictionaryProperty",
                                 TypeName = "Namespace.DictionaryWithoutParameterlessConstructor<string, string>"
                             },
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "int-prefix-",
                                 PropertyName = "IntDictionaryProperty",
                                 TypeName = typeof(int).FullName,
                                 IsIndexer = true
                             },
-                            new TagHelperAttributeDescriptor
+                            new BoundAttributeDescriptor
                             {
                                 Name = "string-prefix-",
                                 PropertyName = "StringDictionaryProperty",
@@ -581,7 +581,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                         AssemblyName = "TestAssembly",
                         Attributes = new []
                         {
-                            new TagHelperAttributeDescriptor("BoundProperty", propertyInfo)
+                            new BoundAttributeDescriptor("BoundProperty", propertyInfo)
                         }
                     },
                     new TagHelperDescriptor
@@ -608,9 +608,9 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                     TagName = "p",
                     TypeName = "TestNamespace.PTagHelper",
                     AssemblyName = "TestAssembly",
-                    Attributes = new TagHelperAttributeDescriptor[]
+                    Attributes = new BoundAttributeDescriptor[]
                     {
-                        new TagHelperAttributeDescriptor("age", pAgePropertyInfo)
+                        new BoundAttributeDescriptor("age", pAgePropertyInfo)
                     },
                     TagStructure = TagStructure.NormalOrSelfClosing
                 },
@@ -620,9 +620,9 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                     TagName = "input",
                     TypeName = "TestNamespace.InputTagHelper",
                     AssemblyName = "TestAssembly",
-                    Attributes = new TagHelperAttributeDescriptor[]
+                    Attributes = new BoundAttributeDescriptor[]
                     {
-                        new TagHelperAttributeDescriptor("type", inputTypePropertyInfo)
+                        new BoundAttributeDescriptor("type", inputTypePropertyInfo)
                     },
                     TagStructure = TagStructure.WithoutEndTag
                 },
@@ -632,10 +632,10 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
                     TagName = "input",
                     TypeName = "TestNamespace.InputTagHelper2",
                     AssemblyName = "TestAssembly",
-                    Attributes = new TagHelperAttributeDescriptor[]
+                    Attributes = new BoundAttributeDescriptor[]
                     {
-                        new TagHelperAttributeDescriptor("type", inputTypePropertyInfo),
-                        new TagHelperAttributeDescriptor("checked", checkedPropertyInfo)
+                        new BoundAttributeDescriptor("type", inputTypePropertyInfo),
+                        new BoundAttributeDescriptor("checked", checkedPropertyInfo)
                     },
                 }
             };
