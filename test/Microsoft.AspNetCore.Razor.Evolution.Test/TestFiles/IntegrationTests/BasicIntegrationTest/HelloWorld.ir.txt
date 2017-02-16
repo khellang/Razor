@@ -5,4 +5,5 @@ Document -
         UsingStatement -  - System.Threading.Tasks
         ClassDeclaration -  -  -  -  - 
             RazorMethodDeclaration -  -  -  -  - 
-                HtmlContent - (0:0,0 [13] HelloWorld.cshtml) - Hello, World!
+                HtmlContent - 
+                    RazorIRToken - (0:0,0 [13] HelloWorld.cshtml) - Html - Hello, World!

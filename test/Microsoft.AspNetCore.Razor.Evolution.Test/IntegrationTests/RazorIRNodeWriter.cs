@@ -42,22 +42,12 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
             WriteContentNode(node, node.Content);
         }
 
-        public override void VisitCSharpToken(CSharpTokenIRNode node)
-        {
-            WriteContentNode(node, node.Content);
-        }
-
         public override void VisitDirective(DirectiveIRNode node)
         {
             WriteContentNode(node, node.Name);
         }
 
         public override void VisitDirectiveToken(DirectiveTokenIRNode node)
-        {
-            WriteContentNode(node, node.Content);
-        }
-
-        public override void VisitHtml(HtmlContentIRNode node)
         {
             WriteContentNode(node, node.Content);
         }
@@ -75,6 +65,11 @@ namespace Microsoft.AspNetCore.Razor.Evolution.IntegrationTests
         public override void VisitNamespace(NamespaceDeclarationIRNode node)
         {
             WriteContentNode(node, node.Content);
+        }
+
+        public override void VisitToken(RazorIRToken node)
+        {
+            WriteContentNode(node, node.Kind.DisplayName, node.Content);
         }
 
         public override void VisitRazorMethodDeclaration(RazorMethodDeclarationIRNode node)

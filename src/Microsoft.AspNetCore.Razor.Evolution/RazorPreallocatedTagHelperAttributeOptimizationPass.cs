@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Evolution.Intermediate;
+using System.Text;
 
 namespace Microsoft.AspNetCore.Razor.Evolution
 {
@@ -35,12 +36,12 @@ namespace Microsoft.AspNetCore.Razor.Evolution
 
             public override void VisitAddTagHelperHtmlAttribute(AddTagHelperHtmlAttributeIRNode node)
             {
-                if (node.Children.Count != 1 || !(node.Children.First() is HtmlContentIRNode))
+                string htmlText;
+                if (!TryGetHtmlText(node, out htmlText))
                 {
                     return;
                 }
-
-                var plainTextValue = (node.Children.First() as HtmlContentIRNode).Content;
+                
                 DeclarePreallocatedTagHelperHtmlAttributeIRNode declaration = null;
 
                 for (var i = 0; i < _classDeclaration.Children.Count; i++)
@@ -52,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution
                         var existingDeclaration = (DeclarePreallocatedTagHelperHtmlAttributeIRNode)current;
 
                         if (string.Equals(existingDeclaration.Name, node.Name, StringComparison.Ordinal) &&
-                            string.Equals(existingDeclaration.Value, plainTextValue, StringComparison.Ordinal) &&
+                            string.Equals(existingDeclaration.Value, htmlText, StringComparison.Ordinal) &&
                             existingDeclaration.ValueStyle == node.ValueStyle)
                         {
                             declaration = existingDeclaration;
@@ -69,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution
                     {
                         VariableName = preAllocatedAttributeVariableName,
                         Name = node.Name,
-                        Value = plainTextValue,
+                        Value = htmlText,
                         ValueStyle = node.ValueStyle,
                         Parent = _classDeclaration
                     };
@@ -88,14 +89,16 @@ namespace Microsoft.AspNetCore.Razor.Evolution
 
             public override void VisitSetTagHelperProperty(SetTagHelperPropertyIRNode node)
             {
-                if (!node.Descriptor.IsStringProperty ||
-                    node.Children.Count != 1 ||
-                    !(node.Children.First() is HtmlContentIRNode))
+                if (!node.Descriptor.IsStringProperty)
                 {
                     return;
                 }
 
-                var plainTextValue = (node.Children.First() as HtmlContentIRNode).Content;
+                string htmlText;
+                if (!TryGetHtmlText(node, out htmlText))
+                {
+                    return;
+                }
 
                 DeclarePreallocatedTagHelperAttributeIRNode declaration = null;
 
@@ -108,7 +111,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution
                         var existingDeclaration = (DeclarePreallocatedTagHelperAttributeIRNode)current;
 
                         if (string.Equals(existingDeclaration.Name, node.AttributeName, StringComparison.Ordinal) &&
-                            string.Equals(existingDeclaration.Value, plainTextValue, StringComparison.Ordinal) &&
+                            string.Equals(existingDeclaration.Value, htmlText, StringComparison.Ordinal) &&
                             existingDeclaration.ValueStyle == node.ValueStyle)
                         {
                             declaration = existingDeclaration;
@@ -125,7 +128,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution
                     {
                         VariableName = preAllocatedAttributeVariableName,
                         Name = node.AttributeName,
-                        Value = plainTextValue,
+                        Value = htmlText,
                         ValueStyle = node.ValueStyle,
                         Parent = _classDeclaration
                     };
@@ -144,6 +147,45 @@ namespace Microsoft.AspNetCore.Razor.Evolution
 
                 var nodeIndex = node.Parent.Children.IndexOf(node);
                 node.Parent.Children[nodeIndex] = setPreallocatedProperty;
+            }
+
+            private static bool TryGetHtmlText(RazorIRNode node, out string htmlText)
+            {
+                htmlText = null;
+
+                var htmlNode = node.Children.Count == 1 ? node.Children[0] as HtmlContentIRNode : null;
+                if (htmlNode == null)
+                {
+                    // We can only optimize a simple HTML attribute.
+                    return false;
+                }
+
+                if (htmlNode.Children.Count == 1)
+                {
+                    // Optimized alloction-free path for a single token.
+                    var htmlToken = htmlNode.Children[0] as RazorIRToken;
+                    if (htmlToken != null && htmlToken.Kind == RazorIRToken.TokenKind.Html)
+                    {
+                        htmlText = htmlToken.Content;
+                    }
+                }
+                else if (htmlNode.Children.Count > 1)
+                {
+                    var builder = new StringBuilder();
+
+                    for (var i = 0; i < htmlNode.Children.Count; i++)
+                    {
+                        var htmlToken = htmlNode.Children[i] as RazorIRToken;
+                        if (htmlToken != null && htmlToken.Kind == RazorIRToken.TokenKind.Html)
+                        {
+                            builder.Append(htmlToken.Content);
+                        }
+                    }
+
+                    htmlText = builder.ToString();
+                }
+
+                return htmlText != null;
             }
         }
     }

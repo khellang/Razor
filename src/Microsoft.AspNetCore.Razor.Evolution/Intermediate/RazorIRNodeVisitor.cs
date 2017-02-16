@@ -19,6 +19,11 @@ namespace Microsoft.AspNetCore.Razor.Evolution.Intermediate
             VisitDefault(node);
         }
 
+        public virtual void VisitToken(RazorIRToken node)
+        {
+            VisitDefault(node);
+        }
+
         public virtual void VisitDirectiveToken(DirectiveTokenIRNode node)
         {
             VisitDefault(node);
@@ -40,11 +45,6 @@ namespace Microsoft.AspNetCore.Razor.Evolution.Intermediate
         }
 
         public virtual void VisitCSharpExpression(CSharpExpressionIRNode node)
-        {
-            VisitDefault(node);
-        }
-
-        public virtual void VisitCSharpToken(CSharpTokenIRNode node)
         {
             VisitDefault(node);
         }

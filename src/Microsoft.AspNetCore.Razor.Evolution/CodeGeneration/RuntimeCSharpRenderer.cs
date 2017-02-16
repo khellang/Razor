@@ -32,37 +32,39 @@ namespace Microsoft.AspNetCore.Razor.Evolution.CodeGeneration
             }
         }
 
-        public override void VisitCSharpToken(CSharpTokenIRNode node)
-        {
-            Context.Writer.Write(node.Content);
-        }
-
         public override void VisitHtml(HtmlContentIRNode node)
         {
             const int MaxStringLiteralLength = 1024;
 
             var charactersConsumed = 0;
 
-            // Render the string in pieces to avoid Roslyn OOM exceptions at compile time: https://github.com/aspnet/External/issues/54
-            while (charactersConsumed < node.Content.Length)
+            for (var i = 0; i < node.Children.Count; i++)
             {
-                string textToRender;
-                if (node.Content.Length <= MaxStringLiteralLength)
+                var htmlToken = node.Children[i] as RazorIRToken;
+                if (htmlToken != null && htmlToken.Kind == RazorIRToken.TokenKind.Html)
                 {
-                    textToRender = node.Content;
-                }
-                else
-                {
-                    var charactersToSubstring = Math.Min(MaxStringLiteralLength, node.Content.Length - charactersConsumed);
-                    textToRender = node.Content.Substring(charactersConsumed, charactersToSubstring);
-                }
+                    // Render the string in pieces to avoid Roslyn OOM exceptions at compile time: https://github.com/aspnet/External/issues/54
+                    while (charactersConsumed < htmlToken.Content.Length)
+                    {
+                        string textToRender;
+                        if (htmlToken.Content.Length <= MaxStringLiteralLength)
+                        {
+                            textToRender = htmlToken.Content;
+                        }
+                        else
+                        {
+                            var charactersToSubstring = Math.Min(MaxStringLiteralLength, htmlToken.Content.Length - charactersConsumed);
+                            textToRender = htmlToken.Content.Substring(charactersConsumed, charactersToSubstring);
+                        }
 
-                Context.Writer
-                    .Write(Context.RenderingConventions.StartWriteLiteralMethod)
-                    .WriteStringLiteral(textToRender)
-                    .WriteEndMethodInvocation();
+                        Context.Writer
+                            .Write(Context.RenderingConventions.StartWriteLiteralMethod)
+                            .WriteStringLiteral(textToRender)
+                            .WriteEndMethodInvocation();
 
-                charactersConsumed += textToRender.Length;
+                        charactersConsumed += textToRender.Length;
+                    }
+                }
             }
         }
 
@@ -78,7 +80,14 @@ namespace Microsoft.AspNetCore.Razor.Evolution.CodeGeneration
 
             Context.Writer.Write(Context.RenderingConventions.StartWriteMethod);
 
-            VisitDefault(node);
+            for (var i = 0; i < node.Children.Count; i++)
+            {
+                var cSharpToken = node.Children[i] as RazorIRToken;
+                if (cSharpToken != null && cSharpToken.Kind == RazorIRToken.TokenKind.CSharp)
+                {
+                    Context.Writer.Write(cSharpToken.Content);
+                }
+            }
 
             Context.Writer.WriteEndMethodInvocation();
 
@@ -202,14 +211,30 @@ namespace Microsoft.AspNetCore.Razor.Evolution.CodeGeneration
                 using (new LinePragmaWriter(Context.Writer, node.Source.Value))
                 {
                     var padding = BuildOffsetPadding(0, node.Source.Value, Context);
-                    Context.Writer
-                        .Write(padding)
-                        .WriteLine(node.Content);
+                    Context.Writer.Write(padding);
+
+                    for (var i = 0; i < node.Children.Count; i++)
+                    {
+                        var cSharpToken = node.Children[i] as RazorIRToken;
+                        if (cSharpToken != null && cSharpToken.Kind == RazorIRToken.TokenKind.CSharp)
+                        {
+                            Context.Writer.Write(cSharpToken.Content);
+                        }
+                    }
+
+                    Context.Writer.WriteLine(node.Content);
                 }
             }
             else
             {
-                Context.Writer.WriteLine(node.Content);
+                for (var i = 0; i < node.Children.Count; i++)
+                {
+                    var cSharpToken = node.Children[i] as RazorIRToken;
+                    if (cSharpToken != null && cSharpToken.Kind == RazorIRToken.TokenKind.CSharp)
+                    {
+                        Context.Writer.Write(cSharpToken.Content);
+                    }
+                }
             }
         }
 
@@ -649,11 +674,25 @@ namespace Microsoft.AspNetCore.Razor.Evolution.CodeGeneration
             }
             else if (node is HtmlContentIRNode)
             {
-                Context.Writer.Write(((HtmlContentIRNode)node).Content);
+                for (var i = 0; i < node.Children.Count; i++)
+                {
+                    var htmlToken = node.Children[i] as RazorIRToken;
+                    if (htmlToken != null && htmlToken.Kind == RazorIRToken.TokenKind.Html)
+                    {
+                        Context.Writer.Write(htmlToken.Content);
+                    }
+                }
             }
-            else if (node is CSharpTokenIRNode)
+            else if (node is CSharpExpressionIRNode)
             {
-                Context.Writer.Write(((CSharpTokenIRNode)node).Content);
+                for (var i = 0; i < node.Children.Count; i++)
+                {
+                    var cSharpToken = node.Children[i] as RazorIRToken;
+                    if (cSharpToken != null && cSharpToken.Kind == RazorIRToken.TokenKind.CSharp)
+                    {
+                        Context.Writer.Write(cSharpToken.Content);
+                    }
+                }
             }
             else if (node is CSharpStatementIRNode)
             {

@@ -14,11 +14,6 @@ namespace Microsoft.AspNetCore.Razor.Evolution.CodeGeneration
         {
         }
 
-        public override void VisitCSharpToken(CSharpTokenIRNode node)
-        {
-            Context.Writer.Write(node.Content);
-        }
-
         public override void VisitCSharpExpression(CSharpExpressionIRNode node)
         {
             if (node.Children.Count == 0)
@@ -38,14 +33,14 @@ namespace Microsoft.AspNetCore.Razor.Evolution.CodeGeneration
 
                     for (var i = 0; i < node.Children.Count; i++)
                     {
-                        var childNode = node.Children[i];
+                        var childNode = node.Children[i] as RazorIRToken;
 
-                        if (childNode is CSharpTokenIRNode)
+                        if (childNode != null && childNode.Kind == RazorIRToken.TokenKind.CSharp)
                         {
                             AddLineMappingFor(childNode);
                         }
 
-                        childNode.Accept(this);
+                        Context.Writer.Write(childNode.Content);
                     }
 
                     Context.Writer.WriteLine(";");
@@ -202,12 +197,16 @@ namespace Microsoft.AspNetCore.Razor.Evolution.CodeGeneration
                 VisitDefault(node);
 
                 Context.Writer.WriteStartAssignment(propertyValueAccessor);
-                if (node.Children.Count == 1 && node.Children.First() is HtmlContentIRNode)
+                if (node.Children.Count == 1)
                 {
-                    var htmlNode = node.Children.First() as HtmlContentIRNode;
-                    if (htmlNode != null)
+                    var htmlContent = node.Children[0] as HtmlContentIRNode;
+                    if (htmlContent != null && node.Children.Count == 1)
                     {
-                        Context.Writer.WriteStringLiteral(htmlNode.Content);
+                        var htmlToken = htmlContent.Children[0] as RazorIRToken;
+                        if (htmlToken != null && htmlToken.Kind == RazorIRToken.TokenKind.Html)
+                        {
+                            Context.Writer.WriteStringLiteral(htmlToken.Content);
+                        }
                     }
                 }
                 else
@@ -298,21 +297,19 @@ namespace Microsoft.AspNetCore.Razor.Evolution.CodeGeneration
             }
             else if (node is HtmlContentIRNode)
             {
-                if (node.Source != null)
+                for (var i = 0; i < node.Children.Count; i++)
                 {
-                    AddLineMappingFor(node);
-                }
+                    var htmlToken = node.Children[i] as RazorIRToken;
+                    if (htmlToken != null && htmlToken.Kind == RazorIRToken.TokenKind.Html)
+                    {
+                        if (htmlToken.Source != null)
+                        {
+                            AddLineMappingFor(htmlToken);
+                        }
 
-                Context.Writer.Write(((HtmlContentIRNode)node).Content);
-            }
-            else if (node is CSharpTokenIRNode)
-            {
-                if (node.Source != null)
-                {
-                    AddLineMappingFor(node);
+                        Context.Writer.Write(htmlToken.Content);
+                    }
                 }
-
-                Context.Writer.Write(((CSharpTokenIRNode)node).Content);
             }
             else if (node is CSharpStatementIRNode)
             {

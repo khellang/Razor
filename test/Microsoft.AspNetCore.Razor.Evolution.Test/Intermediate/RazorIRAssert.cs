@@ -66,7 +66,16 @@ namespace Microsoft.AspNetCore.Razor.Evolution.Intermediate
             try
             {
                 var html = Assert.IsType<HtmlContentIRNode>(node);
-                Assert.Equal(expected, html.Content);
+
+                var content = new StringBuilder();
+                for (var i = 0; i < html.Children.Count; i++)
+                {
+                    var token = (RazorIRToken)html.Children[i];
+                    Assert.Equal(RazorIRToken.TokenKind.Html, token.Kind);
+                    content.Append(token.Content);
+                }
+
+                Assert.Equal(expected, content.ToString());
             }
             catch (XunitException e)
             {
@@ -203,7 +212,9 @@ namespace Microsoft.AspNetCore.Razor.Evolution.Intermediate
                 var content = new StringBuilder();
                 for (var i = 0; i < cSharp.Children.Count; i++)
                 {
-                    content.Append(((CSharpTokenIRNode)cSharp.Children[i]).Content);
+                    var token = (RazorIRToken)cSharp.Children[i];
+                    Assert.Equal(RazorIRToken.TokenKind.CSharp, token.Kind);
+                    content.Append(token.Content);
                 }
 
                 Assert.Equal(expected, content.ToString());

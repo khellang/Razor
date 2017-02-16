@@ -116,15 +116,12 @@ namespace Microsoft.AspNetCore.Razor.Evolution.CodeGeneration
 
         protected static void RenderExpressionInline(RazorIRNode node, CSharpRenderingContext context)
         {
-            if (node is CSharpTokenIRNode)
+            for (var i = 0; i < node.Children.Count; i++)
             {
-                context.Writer.Write(((CSharpTokenIRNode)node).Content);
-            }
-            else
-            {
-                for (var i = 0; i < node.Children.Count; i++)
+                var cSharpToken = node.Children[i] as RazorIRToken;
+                if (cSharpToken != null && cSharpToken.Kind == RazorIRToken.TokenKind.CSharp)
                 {
-                    RenderExpressionInline(node.Children[i], context);
+                    context.Writer.Write(cSharpToken.Content);
                 }
             }
         }

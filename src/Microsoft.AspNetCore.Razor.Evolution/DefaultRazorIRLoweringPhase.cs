@@ -376,9 +376,10 @@ namespace Microsoft.AspNetCore.Razor.Evolution
                     }
                 }
 
-                _builder.Add(new CSharpTokenIRNode()
+                _builder.Add(new RazorIRToken()
                 {
                     Content = span.Content,
+                    Kind = RazorIRToken.TokenKind.CSharp,
                     Source = BuildSourceSpanFromNode(span),
                 });
             }
@@ -406,35 +407,51 @@ namespace Microsoft.AspNetCore.Razor.Evolution
                     }
                 }
 
-                var currentChildren = _builder.Current.Children;
-                if (currentChildren.Count > 0 && currentChildren[currentChildren.Count - 1] is HtmlContentIRNode)
-                {
-                    var existingHtmlContent = (HtmlContentIRNode)currentChildren[currentChildren.Count - 1];
+                var children = _builder.Current.Children;
 
-                    var source = BuildSourceSpanFromNode(span);
-                    if (existingHtmlContent.Source == null && source == null)
+                // If this span is contiguous with another HTML node then combine them.
+                var htmlNode = children[children.Count - 1] as HtmlContentIRNode;
+                if (htmlNode == null)
+                {
+                    htmlNode = new HtmlContentIRNode();
+                    _builder.Current.Children.Add(htmlNode);
+                }
+
+                var source = BuildSourceSpanFromNode(span);
+
+                // If this this span is contiguous with another HTML token then combine them.
+                var tokens = htmlNode.Children;
+                var htmlToken = tokens[tokens.Count - 1] as RazorIRToken;
+                if (htmlToken != null && htmlToken.Kind == RazorIRToken.TokenKind.Html)
+                {
+                    if (htmlToken.Source == null && source == null)
                     {
-                        Combine(existingHtmlContent, span);
+                        // These both have an unknown location so safe to merge.
+                        Combine(htmlToken, span);
                         return;
                     }
 
                     if (source != null &&
-                        existingHtmlContent.Source != null &&
-                        existingHtmlContent.Source.Value.FilePath == source.Value.FilePath &&
-                        existingHtmlContent.Source.Value.AbsoluteIndex + existingHtmlContent.Source.Value.Length == source.Value.AbsoluteIndex)
+                        htmlToken.Source != null &&
+                        htmlToken.Source.Value.FilePath == source.Value.FilePath &&
+                        htmlToken.Source.Value.AbsoluteIndex + htmlToken.Source.Value.Length == source.Value.AbsoluteIndex)
                     {
-                        Combine(existingHtmlContent, span);
+                        // These have contiguous locations so safe to merge.
+                        Combine(htmlToken, span);
                         return;
                     }
                 }
 
-                _builder.Add(new HtmlContentIRNode()
+                // We're not able to merge with a previous token.
+                tokens.Add(new RazorIRToken()
                 {
                     Content = span.Content,
+                    Kind = RazorIRToken.TokenKind.Html,
+                    Parent = htmlNode,
                     Source = BuildSourceSpanFromNode(span),
                 });
             }
-            private void Combine(HtmlContentIRNode node, Span span)
+            private void Combine(RazorIRToken node, Span span)
             {
                 node.Content = node.Content + span.Content;
                 if (node.Source != null)
@@ -574,6 +591,31 @@ namespace Microsoft.AspNetCore.Razor.Evolution
             private void AddExecuteTagHelpers()
             {
                 _builder.Add(new ExecuteTagHelpersIRNode());
+            }
+        }
+
+        // A visitor that only finds spans of C# or HTML.
+        private class TokenVisitor : ParserVisitor
+        {
+            public Toek
+
+            public List<RazorIRToken> Tokens { get; }
+
+            private RazorIRToken LastToken => Tokens.Count > 0 ? Tokens[Tokens.Count -1] : null;
+
+            public void Reset() => Tokens.Clear();
+
+            public override void VisitExpressionSpan(ExpressionChunkGenerator chunkGenerator, Span span)
+            {
+                Tokens.Add(new RazorIRToken()
+                {
+                    Content = span.Content,
+                    Source = BuildS
+                });
+            }
+
+            public override void VisitMarkupSpan(MarkupChunkGenerator chunkGenerator, Span span)
+            {
             }
         }
     }
