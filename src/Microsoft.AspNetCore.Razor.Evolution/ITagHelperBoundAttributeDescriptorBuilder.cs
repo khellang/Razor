@@ -116,15 +116,22 @@ namespace Microsoft.AspNetCore.Razor.Evolution
 
         public IEnumerable<RazorDiagnostic> Validate()
         {
+            // data-* attributes are explicitly not implemented by user agents and are not intended for use on
+            // the server; therefore it's invalid for TagHelpers to bind to them.
+            const string DataDashPrefix = "data-";
+
             if (string.IsNullOrEmpty(_name))
             {
-                var diagnosticDescriptor = new RazorDiagnosticDescriptor(
-                    "TODO: Track IDS",
-                    () => "Invalid tag helper bound property '{0}.{1}'. Tag helpers cannot bind to HTML attributes with a null or empty name.",
-                    RazorDiagnosticSeverity.Error);
-                var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, new SourceSpan(SourceLocation.Undefined, contentLength: 0), _containingTypeName, _propertyName);
+                if (_indexerNamePrefix == null)
+                {
+                    var diagnosticDescriptor = new RazorDiagnosticDescriptor(
+                        "TODO: Track IDS",
+                        () => "Invalid tag helper bound property '{0}.{1}'. Tag helpers cannot bind to HTML attributes with a null or empty name.",
+                        RazorDiagnosticSeverity.Error);
+                    var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, new SourceSpan(SourceLocation.Undefined, contentLength: 0), _containingTypeName, _propertyName);
 
-                yield return diagnostic;
+                    yield return diagnostic;
+                }
             }
             else
             {
@@ -140,22 +147,6 @@ namespace Microsoft.AspNetCore.Razor.Evolution
                     yield return diagnostic;
                 }
 
-                if (_indexerNamePrefix != null && string.IsNullOrWhiteSpace(_indexerNamePrefix))
-                {
-                    var diagnosticDescriptor = new RazorDiagnosticDescriptor(
-                        "TODO: Track IDS",
-                        () => "Invalid tag helper bound property '{0}.{1}'. Tag helpers cannot bind to HTML attributes with a whitespace {2}.",
-                        RazorDiagnosticSeverity.Error);
-
-                    var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, new SourceSpan(SourceLocation.Undefined, contentLength: 0), _containingTypeName, _propertyName, "prefix");
-
-                    yield return diagnostic;
-                }
-
-                // data-* attributes are explicitly not implemented by user agents and are not intended for use on
-                // the server; therefore it's invalid for TagHelpers to bind to them.
-                const string DataDashPrefix = "data-";
-
                 if (_name.StartsWith(DataDashPrefix, StringComparison.OrdinalIgnoreCase))
                 {
                     var diagnosticDescriptor = new RazorDiagnosticDescriptor(
@@ -164,18 +155,6 @@ namespace Microsoft.AspNetCore.Razor.Evolution
                         RazorDiagnosticSeverity.Error);
 
                     var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, new SourceSpan(SourceLocation.Undefined, contentLength: 0), _containingTypeName, _propertyName, "name", _name, DataDashPrefix);
-
-                    yield return diagnostic;
-                }
-
-                if (_indexerNamePrefix != null && _indexerNamePrefix.StartsWith(DataDashPrefix, StringComparison.OrdinalIgnoreCase))
-                {
-                    var diagnosticDescriptor = new RazorDiagnosticDescriptor(
-                        "TODO: Track IDS",
-                        () => "Invalid tag helper bound property '{0}.{1}'. Tag helpers cannot bind to HTML attributes with {2} '{3}' because {2} starts with '{4}'.",
-                        RazorDiagnosticSeverity.Error);
-
-                    var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, new SourceSpan(SourceLocation.Undefined, contentLength: 0), _containingTypeName, _propertyName, "prefix", _name, DataDashPrefix);
 
                     yield return diagnostic;
                 }
@@ -193,6 +172,33 @@ namespace Microsoft.AspNetCore.Razor.Evolution
 
                         yield return diagnostic;
                     }
+                }
+            }
+
+            if (_indexerNamePrefix != null)
+            {
+                if (string.IsNullOrWhiteSpace(_indexerNamePrefix))
+                {
+                    var diagnosticDescriptor = new RazorDiagnosticDescriptor(
+                        "TODO: Track IDS",
+                        () => "Invalid tag helper bound property '{0}.{1}'. Tag helpers cannot bind to HTML attributes with a whitespace {2}.",
+                        RazorDiagnosticSeverity.Error);
+
+                    var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, new SourceSpan(SourceLocation.Undefined, contentLength: 0), _containingTypeName, _propertyName, "prefix");
+
+                    yield return diagnostic;
+                }
+
+                if (_indexerNamePrefix.StartsWith(DataDashPrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    var diagnosticDescriptor = new RazorDiagnosticDescriptor(
+                        "TODO: Track IDS",
+                        () => "Invalid tag helper bound property '{0}.{1}'. Tag helpers cannot bind to HTML attributes with {2} '{3}' because {2} starts with '{4}'.",
+                        RazorDiagnosticSeverity.Error);
+
+                    var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, new SourceSpan(SourceLocation.Undefined, contentLength: 0), _containingTypeName, _propertyName, "prefix", _name, DataDashPrefix);
+
+                    yield return diagnostic;
                 }
 
                 foreach (var character in _indexerNamePrefix)

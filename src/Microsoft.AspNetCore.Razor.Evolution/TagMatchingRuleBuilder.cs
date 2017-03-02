@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Evolution.Legacy;
 
 namespace Microsoft.AspNetCore.Razor.Evolution
 {
@@ -97,7 +98,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution
 
                 yield return diagnostic;
             }
-            else
+            else if (_tagName != TagHelperDescriptorProvider.ElementCatchAllTarget)
             {
                 foreach (var character in _tagName)
                 {

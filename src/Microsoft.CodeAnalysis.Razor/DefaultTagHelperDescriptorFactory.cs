@@ -201,7 +201,10 @@ namespace Microsoft.CodeAnalysis.Razor
 
             var xml = type.GetDocumentationCommentXml();
 
-            builder.Documentation(xml);
+            if (!string.IsNullOrEmpty(xml))
+            {
+                builder.Documentation(xml);
+            }
         }
 
         private void AddTagOutputHint(INamedTypeSymbol type, ITagHelperDescriptorBuilder builder)
@@ -225,9 +228,9 @@ namespace Microsoft.CodeAnalysis.Razor
             INamedTypeSymbol containingType)
         {
             var attributeNameAttribute = property
-                    .GetAttributes()
-                    .Where(a => a.AttributeClass == _htmlAttributeNameAttributeSymbol)
-                    .FirstOrDefault();
+                .GetAttributes()
+                .Where(a => a.AttributeClass == _htmlAttributeNameAttributeSymbol)
+                .FirstOrDefault();
 
             bool hasExplicitName;
             string attributeName;
@@ -244,7 +247,8 @@ namespace Microsoft.CodeAnalysis.Razor
                 attributeName = (string)attributeNameAttribute.ConstructorArguments[0].Value;
             }
 
-            if (property.SetMethod != null && property.SetMethod.DeclaredAccessibility == Accessibility.Public)
+            var hasPublicSetter = property.SetMethod != null && property.SetMethod.DeclaredAccessibility == Accessibility.Public;
+            if (hasPublicSetter)
             {
                 var typeName = GetFullName(property.Type);
                 builder
@@ -261,7 +265,10 @@ namespace Microsoft.CodeAnalysis.Razor
                 {
                     var xml = property.GetDocumentationCommentXml();
 
-                    builder.Documentation(xml);
+                    if (!string.IsNullOrEmpty(xml))
+                    {
+                        builder.Documentation(xml);
+                    }
                 }
             }
             else if (hasExplicitName)
@@ -281,8 +288,17 @@ namespace Microsoft.CodeAnalysis.Razor
                 builder.AddDiagnostic(diagnostic);
             }
 
-            var hasPublicSetter = property.SetMethod != null && property.SetMethod.DeclaredAccessibility == Accessibility.Public;
+            ConfigureDictionaryBoundAttribute(builder, property, containingType, attributeNameAttribute, attributeName, hasPublicSetter);
+        }
 
+        private void ConfigureDictionaryBoundAttribute(
+            ITagHelperBoundAttributeDescriptorBuilder builder, 
+            IPropertySymbol property, 
+            INamedTypeSymbol containingType, 
+            AttributeData attributeNameAttribute, 
+            string attributeName, 
+            bool hasPublicSetter)
+        {
             string dictionaryAttributePrefix = null;
             var dictionaryAttributePrefixSet = false;
 
@@ -299,21 +315,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 }
             }
 
-            INamedTypeSymbol dictionaryType;
-            if ((property.Type as INamedTypeSymbol)?.ConstructedFrom == _iDictionarySymbol)
-            {
-                dictionaryType = (INamedTypeSymbol)property.Type;
-            }
-            else if (property.Type.AllInterfaces.Any(s => s.ConstructedFrom == _iDictionarySymbol))
-            {
-                dictionaryType = property.Type.AllInterfaces.First(s => s.ConstructedFrom == _iDictionarySymbol);
-            }
-            else
-            {
-                dictionaryType = null;
-            }
-
-            var dictionaryValueType = dictionaryType?.TypeArguments[0];
+            var dictionaryValueType = GetDictionaryValueType(property);
 
             if (dictionaryValueType?.SpecialType != SpecialType.System_String)
             {
@@ -371,6 +373,26 @@ namespace Microsoft.CodeAnalysis.Razor
 
             var dictionaryValueTypeName = GetFullName(dictionaryValueType);
             builder.AsDictionary(prefix, dictionaryValueTypeName);
+        }
+
+        private ITypeSymbol GetDictionaryValueType(IPropertySymbol property)
+        {
+            INamedTypeSymbol dictionaryType;
+            if ((property.Type as INamedTypeSymbol)?.ConstructedFrom == _iDictionarySymbol)
+            {
+                dictionaryType = (INamedTypeSymbol)property.Type;
+            }
+            else if (property.Type.AllInterfaces.Any(s => s.ConstructedFrom == _iDictionarySymbol))
+            {
+                dictionaryType = property.Type.AllInterfaces.First(s => s.ConstructedFrom == _iDictionarySymbol);
+            }
+            else
+            {
+                dictionaryType = null;
+            }
+
+            var dictionaryValueType = dictionaryType?.TypeArguments[0];
+            return dictionaryValueType;
         }
 
         private static string HtmlTargetElementAttribute_Attributes(AttributeData attibute)
@@ -438,7 +460,10 @@ namespace Microsoft.CodeAnalysis.Razor
                         property.GetMethod != null &&
                         property.GetMethod.DeclaredAccessibility == Accessibility.Public &&
                         property.GetAttributes().Where(a => a.AttributeClass == _htmlAttributeNotBoundAttributeSymbol).FirstOrDefault() == null &&
-                        !accessibleProperties.ContainsKey(property.Name))
+                        !accessibleProperties.ContainsKey(property.Name) &&
+                            (property.SetMethod != null && property.SetMethod.DeclaredAccessibility == Accessibility.Public || 
+                            (property.Type as INamedTypeSymbol)?.ConstructedFrom == _iDictionarySymbol &&
+                            GetDictionaryValueType(property).SpecialType == SpecialType.System_String))
                     {
                         accessibleProperties.Add(property.Name, property);
                     }
@@ -538,11 +563,16 @@ namespace Microsoft.CodeAnalysis.Razor
 
                     do
                     {
+                        var successfulParse = true;
                         ruleBuilder.RequireAttribute(attributeBuilder =>
                         {
                             if (At('['))
                             {
-                                ParseCssSelector(attributeBuilder);
+                                if (!TryParseCssSelector(attributeBuilder))
+                                {
+                                    successfulParse = false;
+                                    return;
+                                }
                             }
                             else
                             {
@@ -557,6 +587,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
                                 if (!EnsureNotAtEnd(attributeBuilder))
                                 {
+                                    successfulParse = false;
                                     return;
                                 }
                             }
@@ -567,7 +598,8 @@ namespace Microsoft.CodeAnalysis.Razor
                                     () => Resources.TagHelperDescriptorFactory_InvalidRequiredAttributeCharacter,
                                     RazorDiagnosticSeverity.Error);
                                 var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, new SourceSpan(SourceLocation.Undefined, contentLength: 0), Current, _requiredAttributes);
-                                ruleBuilder.AddDiagnostic(diagnostic);
+                                attributeBuilder.AddDiagnostic(diagnostic);
+                                successfulParse = false;
                                 return;
                             }
 
@@ -579,6 +611,11 @@ namespace Microsoft.CodeAnalysis.Razor
                                 attributeBuilder.AddDiagnostic(diagnostic);
                             }
                         });
+
+                        if (!successfulParse)
+                        {
+                            break;
+                        }
                     }
                     while (!AtEnd);
                 }
@@ -624,10 +661,9 @@ namespace Microsoft.CodeAnalysis.Razor
                     builder.Name(attributeName);
                 }
 
-                private void ParseCssValueComparison(RequiredAttributeDescriptorBuilder builder)
+                private bool TryParseCssValueComparison(RequiredAttributeDescriptorBuilder builder, out RequiredAttributeDescriptor.ValueComparisonMode valueComparison)
                 {
                     Debug.Assert(!AtEnd);
-                    RequiredAttributeDescriptor.ValueComparisonMode valueComparison;
 
                     if (CssValueComparisons.TryGetValue(Current, out valueComparison))
                     {
@@ -648,7 +684,7 @@ namespace Microsoft.CodeAnalysis.Razor
                             var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, new SourceSpan(SourceLocation.Undefined, contentLength: 0), _requiredAttributes, op);
                             builder.AddDiagnostic(diagnostic);
 
-                            return;
+                            return false;
                         }
                     }
                     else if (!At(']'))
@@ -660,13 +696,15 @@ namespace Microsoft.CodeAnalysis.Razor
                         var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, new SourceSpan(SourceLocation.Undefined, contentLength: 0), Current, _requiredAttributes);
                         builder.AddDiagnostic(diagnostic);
 
-                        return;
+                        return false;
                     }
 
-                    builder.ValueComparison(valueComparison);
+                    builder.ValueComparisonMode(valueComparison);
+
+                    return true;
                 }
 
-                private void ParseCssValue(RequiredAttributeDescriptorBuilder builder)
+                private bool TryParseCssValue(RequiredAttributeDescriptorBuilder builder)
                 {
                     int valueStart;
                     int valueEnd;
@@ -688,7 +726,7 @@ namespace Microsoft.CodeAnalysis.Razor
                             var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, new SourceSpan(SourceLocation.Undefined, contentLength: 0), _requiredAttributes, quote);
                             builder.AddDiagnostic(diagnostic);
 
-                            return;
+                            return false;
                         }
                         _index = valueEnd + 1;
                     }
@@ -703,9 +741,11 @@ namespace Microsoft.CodeAnalysis.Razor
                     var value = _requiredAttributes.Substring(valueStart, valueEnd - valueStart);
 
                     builder.Value(value);
+
+                    return true;
                 }
 
-                private void ParseCssSelector(RequiredAttributeDescriptorBuilder attributeBuilder)
+                private bool TryParseCssSelector(RequiredAttributeDescriptorBuilder attributeBuilder)
                 {
                     Debug.Assert(At('['));
 
@@ -719,19 +759,25 @@ namespace Microsoft.CodeAnalysis.Razor
 
                     if (!EnsureNotAtEnd(attributeBuilder))
                     {
-                        return;
+                        return false;
                     }
 
-                    ParseCssValueComparison(attributeBuilder);
+                    if (!TryParseCssValueComparison(attributeBuilder, out RequiredAttributeDescriptor.ValueComparisonMode valueComparison))
+                    {
+                        return false;
+                    }
 
                     PassOptionalWhitespace();
 
                     if (!EnsureNotAtEnd(attributeBuilder))
                     {
-                        return;
+                        return false;
                     }
 
-                    ParseCssValue(attributeBuilder);
+                    if (valueComparison != RequiredAttributeDescriptor.ValueComparisonMode.None && !TryParseCssValue(attributeBuilder))
+                    {
+                        return false;
+                    }
 
                     PassOptionalWhitespace();
 
@@ -739,6 +785,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     {
                         // Move past the ending bracket.
                         _index++;
+                        return true;
                     }
                     else if (AtEnd)
                     {
@@ -748,8 +795,6 @@ namespace Microsoft.CodeAnalysis.Razor
                             RazorDiagnosticSeverity.Error);
                         var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, new SourceSpan(SourceLocation.Undefined, contentLength: 0), _requiredAttributes);
                         attributeBuilder.AddDiagnostic(diagnostic);
-
-                        return;
                     }
                     else
                     {
@@ -759,9 +804,9 @@ namespace Microsoft.CodeAnalysis.Razor
                             RazorDiagnosticSeverity.Error);
                         var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, new SourceSpan(SourceLocation.Undefined, contentLength: 0), Current, _requiredAttributes);
                         attributeBuilder.AddDiagnostic(diagnostic);
-
-                        return;
                     }
+
+                    return false;
                 }
 
                 private bool EnsureNotAtEnd(RequiredAttributeDescriptorBuilder builder)

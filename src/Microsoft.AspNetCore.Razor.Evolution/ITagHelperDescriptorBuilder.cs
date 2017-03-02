@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Evolution.Legacy;
 
 namespace Microsoft.AspNetCore.Razor.Evolution
 {
@@ -134,38 +135,41 @@ namespace Microsoft.AspNetCore.Razor.Evolution
 
         public IEnumerable<RazorDiagnostic> Validate()
         {
-            foreach (var name in _allowedChildTags)
+            if (_allowedChildTags != null)
             {
-                if (string.IsNullOrWhiteSpace(name))
+                foreach (var name in _allowedChildTags)
                 {
-                    var diagnosticDescriptor = new RazorDiagnosticDescriptor(
-                        "TODO: Track IDS",
-                        () => "Invalid '{0}' tag name for tag helper '{1}'. Name cannot be null or whitespace.",
-                        RazorDiagnosticSeverity.Error);
-                    var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, new SourceSpan(SourceLocation.Undefined, contentLength: 0), "Microsoft.AspNetCore.Razor.TagHelpers.RestrictChildrenAttribute", _typeName);
-
-                    yield return diagnostic;
-                }
-                else
-                {
-                    foreach (var character in name)
+                    if (string.IsNullOrWhiteSpace(name))
                     {
-                        if (char.IsWhiteSpace(character) || InvalidNonWhitespaceAllowedChildCharacters.Contains(character))
+                        var diagnosticDescriptor = new RazorDiagnosticDescriptor(
+                            "TODO: Track IDS",
+                            () => "Invalid '{0}' tag name for tag helper '{1}'. Name cannot be null or whitespace.",
+                            RazorDiagnosticSeverity.Error);
+                        var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, new SourceSpan(SourceLocation.Undefined, contentLength: 0), "Microsoft.AspNetCore.Razor.TagHelpers.RestrictChildrenAttribute", _typeName);
+
+                        yield return diagnostic;
+                    }
+                    else if (name != TagHelperDescriptorProvider.ElementCatchAllTarget)
+                    {
+                        foreach (var character in name)
                         {
-                            var diagnosticDescriptor = new RazorDiagnosticDescriptor(
-                                "TODO: Track IDS",
-                                () => "Invalid '{0}' tag name '{1}' for tag helper '{2}'. Tag helpers cannot restrict child elements that contain a '{3}' character.",
-                                RazorDiagnosticSeverity.Error);
+                            if (char.IsWhiteSpace(character) || InvalidNonWhitespaceAllowedChildCharacters.Contains(character))
+                            {
+                                var diagnosticDescriptor = new RazorDiagnosticDescriptor(
+                                    "TODO: Track IDS",
+                                    () => "Invalid '{0}' tag name '{1}' for tag helper '{2}'. Tag helpers cannot restrict child elements that contain a '{3}' character.",
+                                    RazorDiagnosticSeverity.Error);
 
-                            var diagnostic = RazorDiagnostic.Create(
-                                diagnosticDescriptor,
-                                new SourceSpan(SourceLocation.Undefined, contentLength: 0),
-                                "Microsoft.AspNetCore.Razor.TagHelpers.RestrictChildrenAttribute",
-                                name,
-                                _typeName,
-                                character);
+                                var diagnostic = RazorDiagnostic.Create(
+                                    diagnosticDescriptor,
+                                    new SourceSpan(SourceLocation.Undefined, contentLength: 0),
+                                    "Microsoft.AspNetCore.Razor.TagHelpers.RestrictChildrenAttribute",
+                                    name,
+                                    _typeName,
+                                    character);
 
-                            yield return diagnostic;
+                                yield return diagnostic;
+                            }
                         }
                     }
                 }
@@ -242,7 +246,7 @@ namespace Microsoft.AspNetCore.Razor.Evolution
                 DisplayName = displayName;
                 Documentation = documentation;
                 TagOutputHint = tagOutputHint;
-                TagMatchingRules  = tagMatchingRules;
+                TagMatchingRules = tagMatchingRules;
                 BoundAttributes = attributeDescriptors;
                 AllowedChildTags = allowedChildTags;
                 Diagnostics = diagnostics;

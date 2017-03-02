@@ -28,124 +28,282 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         {
             get
             {
-                Func<string, RazorError> error = (message) => new RazorError(message, SourceLocation.Zero, 0);
-
-                return new TheoryData<string, RazorError>
+                Func<string, object[], RazorDiagnostic> error = (message, parameters) =>
                 {
-                    { "name,", error(Resources.FormatTagHelperDescriptorFactory_CouldNotFindMatchingEndBrace("name,")) },
-                    { " ", error(Resources.FormatHtmlTargetElementAttribute_NameCannotBeNullOrWhitespace("Attribute")) },
-                    { "n@me", error(Resources.FormatHtmlTargetElementAttribute_InvalidName("attribute", "n@me", '@')) },
-                    { "name extra", error(Resources.FormatTagHelperDescriptorFactory_InvalidRequiredAttributeCharacter('e', "name extra")) },
-                    { "[[ ", error(Resources.FormatTagHelperDescriptorFactory_CouldNotFindMatchingEndBrace("[[ ")) },
-                    { "[ ", error(Resources.FormatTagHelperDescriptorFactory_CouldNotFindMatchingEndBrace("[ ")) },
+                    var diagnosticDescriptor = new RazorDiagnosticDescriptor(
+                        "TODO: Track IDS",
+                        () => message,
+                        RazorDiagnosticSeverity.Error);
+                    var diagnostic = RazorDiagnostic.Create(
+                        diagnosticDescriptor,
+                        new SourceSpan(SourceLocation.Undefined, contentLength: 0),
+                        parameters);
+
+                    return diagnostic;
+                };
+
+                return new TheoryData<string, RequiredAttributeDescriptor[]>
+                {
+                    {
+                        "name,",
+                        new[]
+                        {
+                            RequiredAttributeDescriptorBuilder.Create()
+                                .Name("name")
+                                .AddDiagnostic(error(Resources.TagHelperDescriptorFactory_CouldNotFindMatchingEndBrace, new object[] { "name," }))
+                                .Build(),
+                        }
+                    },
+                    {
+                        " ",
+                        new[]
+                        {
+                            RequiredAttributeDescriptorBuilder.Create()
+                                .Name(string.Empty)
+                                .AddDiagnostic(error(Resources.HtmlTargetElementAttribute_NameCannotBeNullOrWhitespace, new object[] { "Attribute" }))
+                                .Build(),
+                        }
+                    },
+                    {
+                        "n@me",
+                        new[]
+                        {
+                            RequiredAttributeDescriptorBuilder.Create()
+                                .Name("n@me")
+                                .AddDiagnostic(error(Resources.HtmlTargetElementAttribute_InvalidName, new object[] { "attribute", "n@me", '@' }))
+                                .Build(),
+                        }
+                    },
+                    {
+                        "name extra",
+                        new[]
+                        {
+                            RequiredAttributeDescriptorBuilder.Create()
+                                .Name("name")
+                                .AddDiagnostic(error(Resources.TagHelperDescriptorFactory_InvalidRequiredAttributeCharacter, new object[] { 'e', "name extra" }))
+                                .Build(),
+                        }
+                    },
+                    {
+                        "[[ ",
+                        new[]
+                        {
+                            RequiredAttributeDescriptorBuilder.Create()
+                                .Name("[")
+                                .AddDiagnostic(error(Resources.TagHelperDescriptorFactory_CouldNotFindMatchingEndBrace, new object[] { "[[ " }))
+                                .Build(),
+                        }
+                    },
+                    {
+                        "[ ",
+                        new[]
+                        {
+                            RequiredAttributeDescriptorBuilder.Create()
+                                .Name("")
+                                .AddDiagnostic(error(Resources.TagHelperDescriptorFactory_CouldNotFindMatchingEndBrace, new object[] { "[ " }))
+                                .Build(),
+                        }
+                    },
                     {
                         "[name='unended]",
-                        error(Resources.FormatTagHelperDescriptorFactory_InvalidRequiredAttributeMismatchedQuotes("[name='unended]", '\''))
+                        new[]
+                        {
+                            RequiredAttributeDescriptorBuilder.Create()
+                                .Name("name")
+                                .ValueComparisonMode(RequiredAttributeDescriptor.ValueComparisonMode.FullMatch)
+                                .AddDiagnostic(error(Resources.TagHelperDescriptorFactory_InvalidRequiredAttributeMismatchedQuotes, new object[] { "[name='unended]", '\'' }))
+                                .Build(),
+                        }
                     },
                     {
                         "[name='unended",
-                        error(Resources.FormatTagHelperDescriptorFactory_InvalidRequiredAttributeMismatchedQuotes("[name='unended", '\''))
+                        new[]
+                        {
+                            RequiredAttributeDescriptorBuilder.Create()
+                                .Name("name")
+                                .ValueComparisonMode(RequiredAttributeDescriptor.ValueComparisonMode.FullMatch)
+                                .AddDiagnostic(error(Resources.TagHelperDescriptorFactory_InvalidRequiredAttributeMismatchedQuotes, new object[] { "[name='unended", '\'' }))
+                                .Build(),
+                        }
                     },
-                    { "[name", error(Resources.FormatTagHelperDescriptorFactory_CouldNotFindMatchingEndBrace("[name")) },
-                    { "[ ]", error(Resources.FormatHtmlTargetElementAttribute_NameCannotBeNullOrWhitespace("Attribute")) },
-                    { "[n@me]", error(Resources.FormatHtmlTargetElementAttribute_InvalidName("attribute", "n@me", '@')) },
-                    { "[name@]", error(Resources.FormatHtmlTargetElementAttribute_InvalidName("attribute", "name@", '@')) },
-                    { "[name^]", error(Resources.FormatTagHelperDescriptorFactory_PartialRequiredAttributeOperator("[name^]", '^')) },
-                    { "[name='value'", error(Resources.FormatTagHelperDescriptorFactory_CouldNotFindMatchingEndBrace("[name='value'")) },
-                    { "[name ", error(Resources.FormatTagHelperDescriptorFactory_CouldNotFindMatchingEndBrace("[name ")) },
-                    { "[name extra]", error(Resources.FormatTagHelperDescriptorFactory_InvalidRequiredAttributeOperator('e', "[name extra]")) },
-                    { "[name=value ", error(Resources.FormatTagHelperDescriptorFactory_CouldNotFindMatchingEndBrace("[name=value ")) },
+                    {
+                        "[name",
+                        new[]
+                        {
+                            RequiredAttributeDescriptorBuilder.Create()
+                                .Name("name")
+                                .AddDiagnostic(error(Resources.TagHelperDescriptorFactory_CouldNotFindMatchingEndBrace, new object[] { "[name" }))
+                                .Build(),
+                        }
+                    },
+                    {
+                        "[ ]",
+                        new[]
+                        {
+                            RequiredAttributeDescriptorBuilder.Create()
+                                .Name(string.Empty)
+                                .AddDiagnostic(error(Resources.HtmlTargetElementAttribute_NameCannotBeNullOrWhitespace, new object[] { "Attribute" }))
+                                .Build(),
+                        }
+                    },
+                    {
+                        "[n@me]",
+                        new[]
+                        {
+                            RequiredAttributeDescriptorBuilder.Create()
+                                .Name("n@me")
+                                .AddDiagnostic(error(Resources.HtmlTargetElementAttribute_InvalidName, new object[] { "attribute", "n@me", '@' }))
+                                .Build(),
+                        }
+                    },
+                    {
+                        "[name@]",
+                        new[]
+                        {
+                            RequiredAttributeDescriptorBuilder.Create()
+                                .Name("name@")
+                                .AddDiagnostic(error(Resources.HtmlTargetElementAttribute_InvalidName, new object[] { "attribute", "name@", '@' }))
+                                .Build(),
+                        }
+                    },
+                    {
+                        "[name^]",
+                        new[]
+                        {
+                            RequiredAttributeDescriptorBuilder.Create()
+                                .Name("name")
+                                .AddDiagnostic(error(Resources.TagHelperDescriptorFactory_PartialRequiredAttributeOperator, new object[] { "[name^]", '^' }))
+                                .Build(),
+                        }
+                    },
+                    {
+                        "[name='value'",
+                        new[]
+                        {
+                            RequiredAttributeDescriptorBuilder.Create()
+                                .Name("name")
+                                .Value("value")
+                                .ValueComparisonMode(RequiredAttributeDescriptor.ValueComparisonMode.FullMatch)
+                                .AddDiagnostic(error(Resources.TagHelperDescriptorFactory_CouldNotFindMatchingEndBrace, new object[] { "[name='value'" }))
+                                .Build(),
+                        }
+                    },
+                    {
+                        "[name ",
+                        new[]
+                        {
+                            RequiredAttributeDescriptorBuilder.Create()
+                                .Name("name")
+                                .AddDiagnostic(error(Resources.TagHelperDescriptorFactory_CouldNotFindMatchingEndBrace, new object[] { "[name " }))
+                                .Build(),
+                        }
+                    },
+                    {
+                        "[name extra]",
+                        new[]
+                        {
+                            RequiredAttributeDescriptorBuilder.Create()
+                                .Name("name")
+                                .AddDiagnostic(error(Resources.TagHelperDescriptorFactory_InvalidRequiredAttributeOperator, new object[] { 'e', "[name extra]" }))
+                                .Build(),
+                        }
+                    },
+                    {
+                        "[name=value ",
+                        new[]
+                        {
+                            RequiredAttributeDescriptorBuilder.Create()
+                                .Name("name")
+                                .Value("value")
+                                .ValueComparisonMode(RequiredAttributeDescriptor.ValueComparisonMode.FullMatch)
+                                .AddDiagnostic(error(Resources.TagHelperDescriptorFactory_CouldNotFindMatchingEndBrace, new object[] { "[name=value " }))
+                                .Build(),
+                        }
+                    },
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(RequiredAttributeParserErrorData))]
-        public void RequiredAttributeParser_ParsesRequiredAttributesAndLogsErrorCorrectly(
+        public void RequiredAttributeParser_ParsesRequiredAttributesAndLogsDiagnosticsCorrectly(
             string requiredAttributes,
-            object expectedError)
+            IEnumerable<RequiredAttributeDescriptor> expectedDescriptors)
         {
             // Arrange
-            var parser = new DefaultTagHelperDescriptorFactory.RequiredAttributeParser(requiredAttributes);
-            var errorSink = new ErrorSink();
-            IEnumerable<RequiredAttributeDescriptor> descriptors;
+            var ruleBuilder = TagMatchingRuleBuilder.Create();
 
             // Act
-            var parsedCorrectly = parser.TryParse(errorSink, out descriptors);
+            DefaultTagHelperDescriptorFactory.RequiredAttributeParser.AddRequiredAttributes(requiredAttributes, ruleBuilder);
 
             // Assert
-            Assert.False(parsedCorrectly);
-            Assert.Null(descriptors);
-            var error = Assert.Single(errorSink.Errors);
-            Assert.Equal((RazorError)expectedError, error);
+            var descriptors = ruleBuilder.Build().Attributes;
+            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveRequiredAttributeDescriptorComparer.Default);
         }
 
         public static TheoryData RequiredAttributeParserData
         {
             get
             {
-                Func<string, TagHelperRequiredAttributeNameComparison, RequiredAttributeDescriptor> plain =
-                    (name, nameComparison) => new RequiredAttributeDescriptor
-                    {
-                        Name = name,
-                        NameComparison = nameComparison
-                    };
-                Func<string, string, TagHelperRequiredAttributeValueComparison, RequiredAttributeDescriptor> css =
-                    (name, value, valueComparison) => new RequiredAttributeDescriptor
-                    {
-                        Name = name,
-                        NameComparison = TagHelperRequiredAttributeNameComparison.FullMatch,
-                        Value = value,
-                        ValueComparison = valueComparison,
-                    };
+                Func<string, RequiredAttributeDescriptor.NameComparisonMode, RequiredAttributeDescriptor> plain =
+                    (name, nameComparison) => RequiredAttributeDescriptorBuilder.Create()
+                        .Name(name)
+                        .NameComparisonMode(nameComparison)
+                        .Build();
+                Func<string, string, RequiredAttributeDescriptor.ValueComparisonMode, RequiredAttributeDescriptor> css =
+                    (name, value, valueComparison) => RequiredAttributeDescriptorBuilder.Create()
+                        .Name(name)
+                        .Value(value)
+                        .ValueComparisonMode(valueComparison)
+                        .Build();
 
                 return new TheoryData<string, IEnumerable<RequiredAttributeDescriptor>>
                 {
                     { null, Enumerable.Empty<RequiredAttributeDescriptor>() },
                     { string.Empty, Enumerable.Empty<RequiredAttributeDescriptor>() },
-                    { "name", new[] { plain("name", TagHelperRequiredAttributeNameComparison.FullMatch) } },
-                    { "name-*", new[] { plain("name-", TagHelperRequiredAttributeNameComparison.PrefixMatch) } },
-                    { "  name-*   ", new[] { plain("name-", TagHelperRequiredAttributeNameComparison.PrefixMatch) } },
+                    { "name", new[] { plain("name", RequiredAttributeDescriptor.NameComparisonMode.FullMatch) } },
+                    { "name-*", new[] { plain("name-", RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch) } },
+                    { "  name-*   ", new[] { plain("name-", RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch) } },
                     {
                         "asp-route-*,valid  ,  name-*   ,extra",
                         new[]
                         {
-                            plain("asp-route-", TagHelperRequiredAttributeNameComparison.PrefixMatch),
-                            plain("valid", TagHelperRequiredAttributeNameComparison.FullMatch),
-                            plain("name-", TagHelperRequiredAttributeNameComparison.PrefixMatch),
-                            plain("extra", TagHelperRequiredAttributeNameComparison.FullMatch),
+                            plain("asp-route-", RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch),
+                            plain("valid", RequiredAttributeDescriptor.NameComparisonMode.FullMatch),
+                            plain("name-", RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch),
+                            plain("extra", RequiredAttributeDescriptor.NameComparisonMode.FullMatch),
                         }
                     },
-                    { "[name]", new[] { css("name", "", TagHelperRequiredAttributeValueComparison.None) } },
-                    { "[ name ]", new[] { css("name", "", TagHelperRequiredAttributeValueComparison.None) } },
-                    { " [ name ] ", new[] { css("name", "", TagHelperRequiredAttributeValueComparison.None) } },
-                    { "[name=]", new[] { css("name", "", TagHelperRequiredAttributeValueComparison.FullMatch) } },
-                    { "[name='']", new[] { css("name", "", TagHelperRequiredAttributeValueComparison.FullMatch) } },
-                    { "[name ^=]", new[] { css("name", "", TagHelperRequiredAttributeValueComparison.PrefixMatch) } },
-                    { "[name=hello]", new[] { css("name", "hello", TagHelperRequiredAttributeValueComparison.FullMatch) } },
-                    { "[name= hello]", new[] { css("name", "hello", TagHelperRequiredAttributeValueComparison.FullMatch) } },
-                    { "[name='hello']", new[] { css("name", "hello", TagHelperRequiredAttributeValueComparison.FullMatch) } },
-                    { "[name=\"hello\"]", new[] { css("name", "hello", TagHelperRequiredAttributeValueComparison.FullMatch) } },
-                    { " [ name  $= \" hello\" ]  ", new[] { css("name", " hello", TagHelperRequiredAttributeValueComparison.SuffixMatch) } },
+                    { "[name]", new[] { css("name", null, RequiredAttributeDescriptor.ValueComparisonMode.None) } },
+                    { "[ name ]", new[] { css("name", null, RequiredAttributeDescriptor.ValueComparisonMode.None) } },
+                    { " [ name ] ", new[] { css("name", null, RequiredAttributeDescriptor.ValueComparisonMode.None) } },
+                    { "[name=]", new[] { css("name", "", RequiredAttributeDescriptor.ValueComparisonMode.FullMatch) } },
+                    { "[name='']", new[] { css("name", "", RequiredAttributeDescriptor.ValueComparisonMode.FullMatch) } },
+                    { "[name ^=]", new[] { css("name", "", RequiredAttributeDescriptor.ValueComparisonMode.PrefixMatch) } },
+                    { "[name=hello]", new[] { css("name", "hello", RequiredAttributeDescriptor.ValueComparisonMode.FullMatch) } },
+                    { "[name= hello]", new[] { css("name", "hello", RequiredAttributeDescriptor.ValueComparisonMode.FullMatch) } },
+                    { "[name='hello']", new[] { css("name", "hello", RequiredAttributeDescriptor.ValueComparisonMode.FullMatch) } },
+                    { "[name=\"hello\"]", new[] { css("name", "hello", RequiredAttributeDescriptor.ValueComparisonMode.FullMatch) } },
+                    { " [ name  $= \" hello\" ]  ", new[] { css("name", " hello", RequiredAttributeDescriptor.ValueComparisonMode.SuffixMatch) } },
                     {
                         "[name=\"hello\"],[other^=something ], [val = 'cool']",
                         new[]
                         {
-                            css("name", "hello", TagHelperRequiredAttributeValueComparison.FullMatch),
-                            css("other", "something", TagHelperRequiredAttributeValueComparison.PrefixMatch),
-                            css("val", "cool", TagHelperRequiredAttributeValueComparison.FullMatch) }
+                            css("name", "hello", RequiredAttributeDescriptor.ValueComparisonMode.FullMatch),
+                            css("other", "something", RequiredAttributeDescriptor.ValueComparisonMode.PrefixMatch),
+                            css("val", "cool", RequiredAttributeDescriptor.ValueComparisonMode.FullMatch) }
                     },
                     {
                         "asp-route-*,[name=\"hello\"],valid  ,[other^=something ],   name-*   ,[val = 'cool'],extra",
                         new[]
                         {
-                            plain("asp-route-", TagHelperRequiredAttributeNameComparison.PrefixMatch),
-                            css("name", "hello", TagHelperRequiredAttributeValueComparison.FullMatch),
-                            plain("valid", TagHelperRequiredAttributeNameComparison.FullMatch),
-                            css("other", "something", TagHelperRequiredAttributeValueComparison.PrefixMatch),
-                            plain("name-", TagHelperRequiredAttributeNameComparison.PrefixMatch),
-                            css("val", "cool", TagHelperRequiredAttributeValueComparison.FullMatch),
-                            plain("extra", TagHelperRequiredAttributeNameComparison.FullMatch),
+                            plain("asp-route-", RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch),
+                            css("name", "hello", RequiredAttributeDescriptor.ValueComparisonMode.FullMatch),
+                            plain("valid", RequiredAttributeDescriptor.NameComparisonMode.FullMatch),
+                            css("other", "something", RequiredAttributeDescriptor.ValueComparisonMode.PrefixMatch),
+                            plain("name-", RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch),
+                            css("val", "cool", RequiredAttributeDescriptor.ValueComparisonMode.FullMatch),
+                            plain("extra", RequiredAttributeDescriptor.NameComparisonMode.FullMatch),
                         }
                     },
                 };
@@ -159,75 +317,57 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             IEnumerable<RequiredAttributeDescriptor> expectedDescriptors)
         {
             // Arrange
-            var parser = new DefaultTagHelperDescriptorFactory.RequiredAttributeParser(requiredAttributes);
-            var errorSink = new ErrorSink();
-            IEnumerable<RequiredAttributeDescriptor> descriptors;
+            var ruleBuilder = TagMatchingRuleBuilder.Create();
 
             // Act
-            var parsedCorrectly = parser.TryParse(errorSink, out descriptors);
+            DefaultTagHelperDescriptorFactory.RequiredAttributeParser.AddRequiredAttributes(requiredAttributes, ruleBuilder);
 
             // Assert
-            Assert.True(parsedCorrectly);
-            Assert.Empty(errorSink.Errors);
-            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperRequiredAttributeDescriptorComparer.Default);
+            var descriptors = ruleBuilder.Build().Attributes;
+            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveRequiredAttributeDescriptorComparer.Default);
         }
 
         public static TheoryData IsEnumData
         {
             get
             {
-                var attributeDescriptors = new[]
-                {
-                    new BoundAttributeDescriptor
-                    {
-                        Name = "non-enum-property",
-                        PropertyName = nameof(EnumTagHelper.NonEnumProperty),
-                        TypeName = typeof(int).FullName
-                    },
-                    new BoundAttributeDescriptor
-                    {
-                        Name = "enum-property",
-                        PropertyName = nameof(EnumTagHelper.EnumProperty),
-                        TypeName = typeof(CustomEnum).FullName,
-                        IsEnum = true
-                    },
-                };
-
-                // tagHelperType, expectedDescriptors
-                return new TheoryData<Type, TagHelperDescriptor[]>
+                // tagHelperType, expectedDescriptor
+                return new TheoryData<Type, TagHelperDescriptor>
                 {
                     {
                         typeof(EnumTagHelper),
-                        new[]
-                        {
-                            new TagHelperDescriptor
-                            {
-                                TagName = "enum",
-                                TypeName = typeof(EnumTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                Attributes = attributeDescriptors
-                            }
-                        }
+                        ITagHelperDescriptorBuilder.Create(typeof(EnumTagHelper).FullName, AssemblyName)
+                            .TagMatchingRule(ruleBuilder => ruleBuilder.RequireTagName("enum"))
+                            .BindAttribute(builder =>
+                                builder
+                                    .Name("non-enum-property")
+                                    .PropertyName(nameof(EnumTagHelper.NonEnumProperty))
+                                    .TypeName(typeof(int).FullName))
+                            .BindAttribute(builder =>
+                                builder
+                                    .Name("enum-property")
+                                    .PropertyName(nameof(EnumTagHelper.EnumProperty))
+                                    .TypeName(typeof(CustomEnum).FullName)
+                                    .AsEnum())
+                            .Build()
                     },
                     {
                         typeof(MultiEnumTagHelper),
-                        new[]
-                        {
-                            new TagHelperDescriptor
-                            {
-                                TagName = "input",
-                                TypeName = typeof(MultiEnumTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                Attributes = attributeDescriptors
-                            },
-                            new TagHelperDescriptor
-                            {
-                                TagName = "p",
-                                TypeName = typeof(MultiEnumTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                Attributes = attributeDescriptors
-                            }
-                        }
+                        ITagHelperDescriptorBuilder.Create(typeof(MultiEnumTagHelper).FullName, AssemblyName)
+                            .TagMatchingRule(ruleBuilder => ruleBuilder.RequireTagName("p"))
+                            .TagMatchingRule(ruleBuilder => ruleBuilder.RequireTagName("input"))
+                            .BindAttribute(builder =>
+                                builder
+                                    .Name("non-enum-property")
+                                    .PropertyName(nameof(MultiEnumTagHelper.NonEnumProperty))
+                                    .TypeName(typeof(int).FullName))
+                            .BindAttribute(builder =>
+                                builder
+                                    .Name("enum-property")
+                                    .PropertyName(nameof(MultiEnumTagHelper.EnumProperty))
+                                    .TypeName(typeof(CustomEnum).FullName)
+                                    .AsEnum())
+                            .Build()
                     }
                 };
             }
@@ -235,86 +375,47 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         [Theory]
         [MemberData(nameof(IsEnumData))]
-        public void CreateDescriptors_IsEnumIsSetCorrectly(
+        public void CreateDescriptor_IsEnumIsSetCorrectly(
             Type tagHelperType,
-            TagHelperDescriptor[] expectedDescriptors)
+            TagHelperDescriptor expectedDescriptor)
         {
             // Arrange
-            var errorSink = new ErrorSink();
             var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
             var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperType.FullName);
 
             // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+            var descriptor = factory.CreateDescriptor(typeSymbol);
 
             // Assert
-            Assert.Empty(errorSink.Errors);
-
-            // We don't care about order. Mono returns reflected attributes differently so we need to ensure order
-            // doesn't matter by sorting.
-            descriptors = descriptors.OrderBy(descriptor => descriptor.TagName);
-
-            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
+            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         public static TheoryData RequiredParentData
         {
             get
             {
-                // tagHelperType, expectedDescriptors
-                return new TheoryData<Type, TagHelperDescriptor[]>
+                // tagHelperType, expectedDescriptor
+                return new TheoryData<Type, TagHelperDescriptor>
                 {
                     {
                         typeof(RequiredParentTagHelper),
-                        new[]
-                        {
-                            new TagHelperDescriptor
-                            {
-                                TagName = "input",
-                                TypeName = typeof(RequiredParentTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                RequiredParent = "div"
-                            }
-                        }
+                        ITagHelperDescriptorBuilder.Create(typeof(RequiredParentTagHelper).FullName, AssemblyName)
+                            .TagMatchingRule(builder => builder.RequireTagName("input").RequireParentTag("div"))
+                            .Build()
                     },
                     {
                         typeof(MultiSpecifiedRequiredParentTagHelper),
-                        new[]
-                        {
-                            new TagHelperDescriptor
-                            {
-                                TagName = "input",
-                                TypeName = typeof(MultiSpecifiedRequiredParentTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                RequiredParent = "section"
-                            },
-                            new TagHelperDescriptor
-                            {
-                                TagName = "p",
-                                TypeName = typeof(MultiSpecifiedRequiredParentTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                RequiredParent = "div"
-                            }
-                        }
+                        ITagHelperDescriptorBuilder.Create(typeof(MultiSpecifiedRequiredParentTagHelper).FullName, AssemblyName)
+                            .TagMatchingRule(builder => builder.RequireTagName("p").RequireParentTag("div"))
+                            .TagMatchingRule(builder => builder.RequireTagName("input").RequireParentTag("section"))
+                            .Build()
                     },
                     {
                         typeof(MultiWithUnspecifiedRequiredParentTagHelper),
-                        new[]
-                        {
-                            new TagHelperDescriptor
-                            {
-                                TagName = "input",
-                                TypeName = typeof(MultiWithUnspecifiedRequiredParentTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                RequiredParent = "div"
-                            },
-                            new TagHelperDescriptor
-                            {
-                                TagName = "p",
-                                TypeName = typeof(MultiWithUnspecifiedRequiredParentTagHelper).FullName,
-                                AssemblyName = AssemblyName
-                            }
-                        }
+                        ITagHelperDescriptorBuilder.Create(typeof(MultiWithUnspecifiedRequiredParentTagHelper).FullName, AssemblyName)
+                            .TagMatchingRule(builder => builder.RequireTagName("p"))
+                            .TagMatchingRule(builder => builder.RequireTagName("input").RequireParentTag("div"))
+                            .Build()
                     },
                 };
             }
@@ -322,80 +423,51 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         [Theory]
         [MemberData(nameof(RequiredParentData))]
-        public void CreateDescriptors_CreatesDesignTimeDescriptorsWithRequiredParent(
+        public void CreateDescriptor_CreatesDesignTimeDescriptorsWithRequiredParent(
             Type tagHelperType,
-            TagHelperDescriptor[] expectedDescriptors)
+            TagHelperDescriptor expectedDescriptor)
         {
             // Arrange
-            var errorSink = new ErrorSink();
             var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
             var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperType.FullName);
 
             // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+            var descriptor = factory.CreateDescriptor(typeSymbol);
 
             // Assert
-            Assert.Empty(errorSink.Errors);
-
-            // We don't care about order. Mono returns reflected attributes differently so we need to ensure order
-            // doesn't matter by sorting.
-            descriptors = descriptors.OrderBy(descriptor => descriptor.TagName);
-
-            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
+            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         public static TheoryData RestrictChildrenData
         {
             get
             {
-                // tagHelperType, expectedDescriptors
-                return new TheoryData<Type, TagHelperDescriptor[]>
+                // tagHelperType, expectedDescriptor
+                return new TheoryData<Type, TagHelperDescriptor>
                 {
                     {
                         typeof(RestrictChildrenTagHelper),
-                        new[]
-                        {
-                            new TagHelperDescriptor
-                            {
-                                TagName = "restrict-children",
-                                TypeName = typeof(RestrictChildrenTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                AllowedChildren = new[] { "p" },
-                            }
-                        }
+                        ITagHelperDescriptorBuilder.Create(typeof(RestrictChildrenTagHelper).FullName, AssemblyName)
+                            .TagMatchingRule(builder => builder.RequireTagName("restrict-children"))
+                            .AllowChildTag("p")
+                            .Build()
                     },
                     {
                         typeof(DoubleRestrictChildrenTagHelper),
-                        new[]
-                        {
-                            new TagHelperDescriptor
-                            {
-                                TagName = "double-restrict-children",
-                                TypeName = typeof(DoubleRestrictChildrenTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                AllowedChildren = new[] { "p", "strong" },
-                            }
-                        }
+                        ITagHelperDescriptorBuilder.Create(typeof(DoubleRestrictChildrenTagHelper).FullName, AssemblyName)
+                            .TagMatchingRule(builder => builder.RequireTagName("double-restrict-children"))
+                            .AllowChildTag("p")
+                            .AllowChildTag("strong")
+                            .Build()
                     },
                     {
                         typeof(MultiTargetRestrictChildrenTagHelper),
-                        new[]
-                        {
-                            new TagHelperDescriptor
-                            {
-                                TagName = "div",
-                                TypeName = typeof(MultiTargetRestrictChildrenTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                AllowedChildren = new[] { "p", "strong" },
-                            },
-                            new TagHelperDescriptor
-                            {
-                                TagName = "p",
-                                TypeName = typeof(MultiTargetRestrictChildrenTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                AllowedChildren = new[] { "p", "strong" },
-                            }
-                        }
+                        ITagHelperDescriptorBuilder.Create(typeof(MultiTargetRestrictChildrenTagHelper).FullName, AssemblyName)
+                            .TagMatchingRule(builder => builder.RequireTagName("p"))
+                            .TagMatchingRule(builder => builder.RequireTagName("div"))
+                            .AllowChildTag("p")
+                            .AllowChildTag("strong")
+                            .Build()
                     },
                 };
             }
@@ -404,86 +476,56 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         [Theory]
         [MemberData(nameof(RestrictChildrenData))]
-        public void CreateDescriptors_CreatesDescriptorsWithAllowedChildren(
+        public void CreateDescriptor_CreatesDescriptorsWithAllowedChildren(
             Type tagHelperType,
-            TagHelperDescriptor[] expectedDescriptors)
+            TagHelperDescriptor expectedDescriptor)
         {
             // Arrange
-            var errorSink = new ErrorSink();
             var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
             var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperType.FullName);
 
             // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+            var descriptor = factory.CreateDescriptor(typeSymbol);
 
             // Assert
-            Assert.Empty(errorSink.Errors);
-
-            // We don't care about order. Mono returns reflected attributes differently so we need to ensure order
-            // doesn't matter by sorting.
-            descriptors = descriptors.OrderBy(descriptor => descriptor.TagName);
-
-            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
+            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         public static TheoryData TagStructureData
         {
             get
             {
-                // tagHelperType, expectedDescriptors
-                return new TheoryData<Type, TagHelperDescriptor[]>
+                // tagHelperType, expectedDescriptor
+                return new TheoryData<Type, TagHelperDescriptor>
                 {
                     {
                         typeof(TagStructureTagHelper),
-                        new[]
-                        {
-                            new TagHelperDescriptor
-                            {
-                                TagName = "input",
-                                TypeName = typeof(TagStructureTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                TagStructure = TagStructure.WithoutEndTag
-                            }
-                        }
+                        ITagHelperDescriptorBuilder.Create(typeof(TagStructureTagHelper).FullName, AssemblyName)
+                            .TagMatchingRule(builder => builder
+                                .RequireTagName("input")
+                                .RequireTagStructure(TagStructure.WithoutEndTag))
+                            .Build()
                     },
                     {
                         typeof(MultiSpecifiedTagStructureTagHelper),
-                        new[]
-                        {
-                            new TagHelperDescriptor
-                            {
-                                TagName = "input",
-                                TypeName = typeof(MultiSpecifiedTagStructureTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                TagStructure = TagStructure.WithoutEndTag
-                            },
-                            new TagHelperDescriptor
-                            {
-                                TagName = "p",
-                                TypeName = typeof(MultiSpecifiedTagStructureTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                TagStructure = TagStructure.NormalOrSelfClosing
-                            }
-                        }
+                        ITagHelperDescriptorBuilder.Create(typeof(MultiSpecifiedTagStructureTagHelper).FullName, AssemblyName)
+                            .TagMatchingRule(builder => builder
+                                .RequireTagName("p")
+                                .RequireTagStructure(TagStructure.NormalOrSelfClosing))
+                            .TagMatchingRule(builder => builder
+                                .RequireTagName("input")
+                                .RequireTagStructure(TagStructure.WithoutEndTag))
+                            .Build()
                     },
                     {
                         typeof(MultiWithUnspecifiedTagStructureTagHelper),
-                        new[]
-                        {
-                            new TagHelperDescriptor
-                            {
-                                TagName = "input",
-                                TypeName = typeof(MultiWithUnspecifiedTagStructureTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                TagStructure = TagStructure.WithoutEndTag
-                            },
-                            new TagHelperDescriptor
-                            {
-                                TagName = "p",
-                                TypeName = typeof(MultiWithUnspecifiedTagStructureTagHelper).FullName,
-                                AssemblyName = AssemblyName
-                            }
-                        }
+                        ITagHelperDescriptorBuilder.Create(typeof(MultiWithUnspecifiedTagStructureTagHelper).FullName, AssemblyName)
+                            .TagMatchingRule(builder => builder
+                                .RequireTagName("p"))
+                            .TagMatchingRule(builder => builder
+                                .RequireTagName("input")
+                                .RequireTagStructure(TagStructure.WithoutEndTag))
+                            .Build()
                     },
                 };
             }
@@ -491,255 +533,194 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         [Theory]
         [MemberData(nameof(TagStructureData))]
-        public void CreateDescriptors_CreatesDesignTimeDescriptorsWithTagStructure(
+        public void CreateDescriptor_CreatesDesignTimeDescriptorsWithTagStructure(
             Type tagHelperType,
-            TagHelperDescriptor[] expectedDescriptors)
+            TagHelperDescriptor expectedDescriptor)
         {
             // Arrange
-            var errorSink = new ErrorSink();
             var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
             var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperType.FullName);
 
             // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+            var descriptor = factory.CreateDescriptor(typeSymbol);
 
             // Assert
-            Assert.Empty(errorSink.Errors);
-
-            // We don't care about order. Mono returns reflected attributes differently so we need to ensure order
-            // doesn't matter by sorting.
-            descriptors = descriptors.OrderBy(descriptor => descriptor.TagName);
-
-            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
+            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         public static TheoryData EditorBrowsableData
         {
             get
             {
-                // tagHelperType, designTime, expectedDescriptors
-                return new TheoryData<Type, bool, TagHelperDescriptor[]>
+                // tagHelperType, designTime, expectedDescriptor
+                return new TheoryData<Type, bool, TagHelperDescriptor>
                 {
                     {
                         typeof(InheritedEditorBrowsableTagHelper),
                         true,
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                tagName: "inherited-editor-browsable",
-                                typeName: typeof(InheritedEditorBrowsableTagHelper).FullName,
-                                assemblyName: AssemblyName,
-                                attributes: new[]
-                                {
-                                    new BoundAttributeDescriptor
-                                    {
-                                        Name = "property",
-                                        PropertyName = nameof(InheritedEditorBrowsableTagHelper.Property),
-                                        TypeName = typeof(int).FullName
-                                    }
-                                })
-                        }
+                        CreateTagHelperDescriptor(
+                            tagName: "inherited-editor-browsable",
+                            typeName: typeof(InheritedEditorBrowsableTagHelper).FullName,
+                            assemblyName: AssemblyName,
+                            attributes: new Action<ITagHelperBoundAttributeDescriptorBuilder>[]
+                            {
+                                builder => builder
+                                    .Name("property")
+                                    .PropertyName(nameof(InheritedEditorBrowsableTagHelper.Property))
+                                    .TypeName(typeof(int).FullName),
+                            })
                     },
-                    { typeof(EditorBrowsableTagHelper), true, new TagHelperDescriptor[0] },
+                    { typeof(EditorBrowsableTagHelper), true, null },
                     {
                         typeof(EditorBrowsableTagHelper),
                         false,
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                tagName: "editor-browsable",
-                                typeName: typeof(EditorBrowsableTagHelper).FullName,
-                                assemblyName: AssemblyName,
-                                attributes: new[]
-                                {
-                                    new BoundAttributeDescriptor
-                                    {
-                                        Name = "property",
-                                        PropertyName = nameof(EditorBrowsableTagHelper.Property),
-                                        TypeName = typeof(int).FullName
-                                    }
-                                })
-                        }
+                        CreateTagHelperDescriptor(
+                            tagName: "editor-browsable",
+                            typeName: typeof(EditorBrowsableTagHelper).FullName,
+                            assemblyName: AssemblyName,
+                            attributes: new Action<ITagHelperBoundAttributeDescriptorBuilder>[]
+                            {
+                                builder => builder
+                                    .Name("property")
+                                    .PropertyName(nameof(EditorBrowsableTagHelper.Property))
+                                    .TypeName(typeof(int).FullName),
+                            })
                     },
                     {
                         typeof(HiddenPropertyEditorBrowsableTagHelper),
                         true,
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                tagName: "hidden-property-editor-browsable",
-                                typeName: typeof(HiddenPropertyEditorBrowsableTagHelper).FullName,
-                                assemblyName: AssemblyName,
-                                attributes: new BoundAttributeDescriptor[0])
-                        }
+                        CreateTagHelperDescriptor(
+                            tagName: "hidden-property-editor-browsable",
+                            typeName: typeof(HiddenPropertyEditorBrowsableTagHelper).FullName,
+                            assemblyName: AssemblyName)
                     },
                     {
                         typeof(HiddenPropertyEditorBrowsableTagHelper),
                         false,
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                tagName: "hidden-property-editor-browsable",
-                                typeName: typeof(HiddenPropertyEditorBrowsableTagHelper).FullName,
-                                assemblyName: AssemblyName,
-                                attributes: new[]
-                                {
-                                    new BoundAttributeDescriptor
-                                    {
-                                        Name = "property",
-                                        PropertyName = nameof(HiddenPropertyEditorBrowsableTagHelper.Property),
-                                        TypeName = typeof(int).FullName
-                                    }
-                                })
-                        }
+                        CreateTagHelperDescriptor(
+                            tagName: "hidden-property-editor-browsable",
+                            typeName: typeof(HiddenPropertyEditorBrowsableTagHelper).FullName,
+                            assemblyName: AssemblyName,
+                            attributes: new Action<ITagHelperBoundAttributeDescriptorBuilder>[]
+                            {
+                                builder => builder
+                                    .Name("property")
+                                    .PropertyName(nameof(HiddenPropertyEditorBrowsableTagHelper.Property))
+                                    .TypeName(typeof(int).FullName),
+                            })
                     },
                     {
                         typeof(OverriddenEditorBrowsableTagHelper),
                         true,
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                tagName: "overridden-editor-browsable",
-                                typeName: typeof(OverriddenEditorBrowsableTagHelper).FullName,
-                                assemblyName: AssemblyName,
-                                attributes: new[]
-                                {
-                                    new BoundAttributeDescriptor
-                                    {
-                                        Name = "property",
-                                        PropertyName = nameof(OverriddenEditorBrowsableTagHelper.Property),
-                                        TypeName = typeof(int).FullName
-                                    }
-                                })
-                        }
+                        CreateTagHelperDescriptor(
+                            tagName: "overridden-editor-browsable",
+                            typeName: typeof(OverriddenEditorBrowsableTagHelper).FullName,
+                            assemblyName: AssemblyName,
+                            attributes: new Action<ITagHelperBoundAttributeDescriptorBuilder>[]
+                            {
+                                builder => builder
+                                    .Name("property")
+                                    .PropertyName(nameof(OverriddenEditorBrowsableTagHelper.Property))
+                                    .TypeName(typeof(int).FullName),
+                            })
                     },
                     {
                         typeof(MultiPropertyEditorBrowsableTagHelper),
                         true,
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                tagName: "multi-property-editor-browsable",
-                                typeName: typeof(MultiPropertyEditorBrowsableTagHelper).FullName,
-                                assemblyName: AssemblyName,
-                                attributes: new[]
-                                {
-                                    new BoundAttributeDescriptor
-                                    {
-                                        Name = "property2",
-                                        PropertyName = nameof(MultiPropertyEditorBrowsableTagHelper.Property2),
-                                        TypeName = typeof(int).FullName
-                                    }
-                                })
-                        }
+                        CreateTagHelperDescriptor(
+                            tagName: "multi-property-editor-browsable",
+                            typeName: typeof(MultiPropertyEditorBrowsableTagHelper).FullName,
+                            assemblyName: AssemblyName,
+                            attributes: new Action<ITagHelperBoundAttributeDescriptorBuilder>[]
+                            {
+                                builder => builder
+                                    .Name("property2")
+                                    .PropertyName(nameof(MultiPropertyEditorBrowsableTagHelper.Property2))
+                                    .TypeName(typeof(int).FullName),
+                            })
                     },
                     {
                         typeof(MultiPropertyEditorBrowsableTagHelper),
                         false,
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                tagName: "multi-property-editor-browsable",
-                                typeName: typeof(MultiPropertyEditorBrowsableTagHelper).FullName,
-                                assemblyName: AssemblyName,
-                                attributes: new[]
-                                {
-                                    new BoundAttributeDescriptor
-                                    {
-                                        Name = "property",
-                                        PropertyName = nameof(MultiPropertyEditorBrowsableTagHelper.Property),
-                                        TypeName = typeof(int).FullName
-                                    },
-                                    new BoundAttributeDescriptor
-                                    {
-                                        Name = "property2",
-                                        PropertyName = nameof(MultiPropertyEditorBrowsableTagHelper.Property2),
-                                        TypeName = typeof(int).FullName
-                                    }
-                                })
-                        }
+                        CreateTagHelperDescriptor(
+                            tagName: "multi-property-editor-browsable",
+                            typeName: typeof(MultiPropertyEditorBrowsableTagHelper).FullName,
+                            assemblyName: AssemblyName,
+                            attributes: new Action<ITagHelperBoundAttributeDescriptorBuilder>[]
+                            {
+                                builder => builder
+                                    .Name("property")
+                                    .PropertyName(nameof(MultiPropertyEditorBrowsableTagHelper.Property))
+                                    .TypeName(typeof(int).FullName),
+                                builder => builder
+                                    .Name("property2")
+                                    .PropertyName(nameof(MultiPropertyEditorBrowsableTagHelper.Property2))
+                                    .TypeName(typeof(int).FullName),
+                            })
                     },
                     {
                         typeof(OverriddenPropertyEditorBrowsableTagHelper),
                         true,
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                tagName: "overridden-property-editor-browsable",
-                                typeName: typeof(OverriddenPropertyEditorBrowsableTagHelper).FullName,
-                                assemblyName: AssemblyName,
-                                attributes: new BoundAttributeDescriptor[0])
-                        }
+                        CreateTagHelperDescriptor(
+                            tagName: "overridden-property-editor-browsable",
+                            typeName: typeof(OverriddenPropertyEditorBrowsableTagHelper).FullName,
+                            assemblyName: AssemblyName)
                     },
                     {
                         typeof(OverriddenPropertyEditorBrowsableTagHelper),
                         false,
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                tagName: "overridden-property-editor-browsable",
-                                typeName: typeof(OverriddenPropertyEditorBrowsableTagHelper).FullName,
-                                assemblyName: AssemblyName,
-                                attributes: new[]
-                                {
-                                    new BoundAttributeDescriptor
-                                    {
-                                        Name = "property2",
-                                        PropertyName = nameof(OverriddenPropertyEditorBrowsableTagHelper.Property2),
-                                        TypeName = typeof(int).FullName
-                                    },
-                                    new BoundAttributeDescriptor
-                                    {
-                                        Name = "property",
-                                        PropertyName = nameof(OverriddenPropertyEditorBrowsableTagHelper.Property),
-                                        TypeName = typeof(int).FullName
-                                    }
-                                })
-                        }
+                        CreateTagHelperDescriptor(
+                            tagName: "overridden-property-editor-browsable",
+                            typeName: typeof(OverriddenPropertyEditorBrowsableTagHelper).FullName,
+                            assemblyName: AssemblyName,
+                            attributes: new Action<ITagHelperBoundAttributeDescriptorBuilder>[]
+                            {
+                                builder => builder
+                                    .Name("property2")
+                                    .PropertyName(nameof(OverriddenPropertyEditorBrowsableTagHelper.Property2))
+                                    .TypeName(typeof(int).FullName),
+                                builder => builder
+                                    .Name("property")
+                                    .PropertyName(nameof(OverriddenPropertyEditorBrowsableTagHelper.Property))
+                                    .TypeName(typeof(int).FullName),
+                            })
                     },
                     {
                         typeof(DefaultEditorBrowsableTagHelper),
                         true,
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                tagName: "default-editor-browsable",
-                                typeName: typeof(DefaultEditorBrowsableTagHelper).FullName,
-                                assemblyName: AssemblyName,
-                                attributes: new[]
-                                {
-                                    new BoundAttributeDescriptor
-                                    {
-                                        Name = "property",
-                                        PropertyName = nameof(DefaultEditorBrowsableTagHelper.Property),
-                                        TypeName = typeof(int).FullName
-                                    }
-                                })
-                        }
+                        CreateTagHelperDescriptor(
+                            tagName: "default-editor-browsable",
+                            typeName: typeof(DefaultEditorBrowsableTagHelper).FullName,
+                            assemblyName: AssemblyName,
+                            attributes: new Action<ITagHelperBoundAttributeDescriptorBuilder>[]
+                            {
+                                builder => builder
+                                    .Name("property")
+                                    .PropertyName(nameof(DefaultEditorBrowsableTagHelper.Property))
+                                    .TypeName(typeof(int).FullName),
+                            })
                     },
-                    { typeof(MultiEditorBrowsableTagHelper), true, new TagHelperDescriptor[0] }
+                    { typeof(MultiEditorBrowsableTagHelper), true, null }
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(EditorBrowsableData))]
-        public void CreateDescriptors_UnderstandsEditorBrowsableAttribute(
+        public void CreateDescriptor_UnderstandsEditorBrowsableAttribute(
             Type tagHelperType,
             bool designTime,
-            TagHelperDescriptor[] expectedDescriptors)
+            TagHelperDescriptor expectedDescriptor)
         {
             // Arrange
-            var errorSink = new ErrorSink();
             var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime);
             var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperType.FullName);
 
             // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+            var descriptor = factory.CreateDescriptor(typeSymbol);
 
             // Assert
-            Assert.Empty(errorSink.Errors);
-            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
+            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         public static TheoryData AttributeTargetData
@@ -748,241 +729,175 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             {
                 var attributes = Enumerable.Empty<BoundAttributeDescriptor>();
 
-                // tagHelperType, expectedDescriptors
-                return new TheoryData<Type, IEnumerable<TagHelperDescriptor>>
+                // tagHelperType, expectedDescriptor
+                return new TheoryData<Type, TagHelperDescriptor>
                 {
                     {
                         typeof(AttributeTargetingTagHelper),
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                TagHelperDescriptorProvider.ElementCatchAllTarget,
-                                typeof(AttributeTargetingTagHelper).FullName,
-                                AssemblyName,
-                                attributes,
-                                requiredAttributes: new[]
-                                {
-                                    new RequiredAttributeDescriptor { Name = "class" }
-                                })
-                        }
+                        CreateTagHelperDescriptor(
+                            TagHelperDescriptorProvider.ElementCatchAllTarget,
+                            typeof(AttributeTargetingTagHelper).FullName,
+                            AssemblyName,
+                            ruleBuilders: new Action<TagMatchingRuleBuilder>[]
+                            {
+                                builder => builder.RequireAttribute(attribute => attribute.Name("class")),
+                            })
                     },
                     {
                         typeof(MultiAttributeTargetingTagHelper),
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                TagHelperDescriptorProvider.ElementCatchAllTarget,
-                                typeof(MultiAttributeTargetingTagHelper).FullName,
-                                AssemblyName,
-                                attributes,
-                                requiredAttributes: new[]
+                        CreateTagHelperDescriptor(
+                            TagHelperDescriptorProvider.ElementCatchAllTarget,
+                            typeof(MultiAttributeTargetingTagHelper).FullName,
+                            AssemblyName,
+                            ruleBuilders: new Action<TagMatchingRuleBuilder>[]
+                            {
+                                builder =>
                                 {
-                                    new RequiredAttributeDescriptor { Name = "class" },
-                                    new RequiredAttributeDescriptor { Name = "style" }
-                                })
-                        }
+                                    builder
+                                        .RequireAttribute(attribute => attribute.Name("class"))
+                                        .RequireAttribute(attribute => attribute.Name("style"));
+                                },
+                            })
                     },
                     {
                         typeof(MultiAttributeAttributeTargetingTagHelper),
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                TagHelperDescriptorProvider.ElementCatchAllTarget,
-                                typeof(MultiAttributeAttributeTargetingTagHelper).FullName,
-                                AssemblyName,
-                                attributes,
-                                requiredAttributes: new[]
+                        CreateTagHelperDescriptor(
+                            TagHelperDescriptorProvider.ElementCatchAllTarget,
+                            typeof(MultiAttributeAttributeTargetingTagHelper).FullName,
+                            AssemblyName,
+                            ruleBuilders: new Action<TagMatchingRuleBuilder>[]
+                            {
+                                builder => builder.RequireAttribute(attribute => attribute.Name("custom")),
+                                builder =>
                                 {
-                                    new RequiredAttributeDescriptor { Name = "custom" }
-                                }),
-                            CreateTagHelperDescriptor(
-                                TagHelperDescriptorProvider.ElementCatchAllTarget,
-                                typeof(MultiAttributeAttributeTargetingTagHelper).FullName,
-                                AssemblyName,
-                                attributes,
-                                requiredAttributes: new[]
-                                {
-                                    new RequiredAttributeDescriptor { Name = "class" },
-                                    new RequiredAttributeDescriptor { Name = "style" }
-                                })
-                        }
+                                    builder
+                                        .RequireAttribute(attribute => attribute.Name("class"))
+                                        .RequireAttribute(attribute => attribute.Name("style"));
+                                },
+                            })
                     },
                     {
                         typeof(InheritedAttributeTargetingTagHelper),
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                TagHelperDescriptorProvider.ElementCatchAllTarget,
-                                typeof(InheritedAttributeTargetingTagHelper).FullName,
-                                AssemblyName,
-                                attributes,
-                                requiredAttributes: new[]
-                                {
-                                    new RequiredAttributeDescriptor { Name = "style" }
-                                })
-                        }
+                        CreateTagHelperDescriptor(
+                            TagHelperDescriptorProvider.ElementCatchAllTarget,
+                            typeof(InheritedAttributeTargetingTagHelper).FullName,
+                            AssemblyName,
+                            ruleBuilders: new Action<TagMatchingRuleBuilder>[]
+                            {
+                                builder => builder.RequireAttribute(attribute => attribute.Name("style")),
+                            })
                     },
                     {
                         typeof(RequiredAttributeTagHelper),
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                "input",
-                                typeof(RequiredAttributeTagHelper).FullName,
-                                AssemblyName,
-                                attributes,
-                                requiredAttributes: new[]
-                                {
-                                    new RequiredAttributeDescriptor { Name = "class" }
-                                })
-                        }
+                        CreateTagHelperDescriptor(
+                            "input",
+                            typeof(RequiredAttributeTagHelper).FullName,
+                            AssemblyName,
+                            ruleBuilders: new Action<TagMatchingRuleBuilder>[]
+                            {
+                                builder => builder.RequireAttribute(attribute => attribute.Name("class")),
+                            })
                     },
                     {
                         typeof(InheritedRequiredAttributeTagHelper),
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                "div",
-                                typeof(InheritedRequiredAttributeTagHelper).FullName,
-                                AssemblyName,
-                                attributes,
-                                requiredAttributes: new[]
-                                {
-                                    new RequiredAttributeDescriptor { Name = "class" }
-                                })
-                        }
+                        CreateTagHelperDescriptor(
+                            "div",
+                            typeof(InheritedRequiredAttributeTagHelper).FullName,
+                            AssemblyName,
+                            ruleBuilders: new Action<TagMatchingRuleBuilder>[]
+                            {
+                                builder => builder.RequireAttribute(attribute => attribute.Name("class")),
+                            })
                     },
                     {
                         typeof(MultiAttributeRequiredAttributeTagHelper),
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                "div",
-                                typeof(MultiAttributeRequiredAttributeTagHelper).FullName,
-                                AssemblyName,
-                                attributes,
-                                requiredAttributes: new[]
-                                {
-                                    new RequiredAttributeDescriptor { Name = "class" }
-                                }),
-                            CreateTagHelperDescriptor(
-                                "input",
-                                typeof(MultiAttributeRequiredAttributeTagHelper).FullName,
-                                AssemblyName,
-                                attributes,
-                                requiredAttributes: new[]
-                                {
-                                    new RequiredAttributeDescriptor { Name = "class" }
-                                })
-                        }
+                        CreateTagHelperDescriptor(
+                            "div",
+                            typeof(MultiAttributeRequiredAttributeTagHelper).FullName,
+                            AssemblyName,
+                            ruleBuilders: new Action<TagMatchingRuleBuilder>[]
+                            {
+                                builder => builder
+                                    .RequireTagName("div")
+                                    .RequireAttribute(attribute => attribute.Name("class")),
+                                builder => builder
+                                    .RequireTagName("input")
+                                    .RequireAttribute(attribute => attribute.Name("class")),
+                            })
                     },
                     {
                         typeof(MultiAttributeSameTagRequiredAttributeTagHelper),
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                "input",
-                                typeof(MultiAttributeSameTagRequiredAttributeTagHelper).FullName,
-                                AssemblyName,
-                                attributes,
-                                requiredAttributes: new[]
-                                {
-                                    new RequiredAttributeDescriptor { Name = "style" }
-                                }),
-                            CreateTagHelperDescriptor(
-                                "input",
-                                typeof(MultiAttributeSameTagRequiredAttributeTagHelper).FullName,
-                                AssemblyName,
-                                attributes,
-                                requiredAttributes: new[]
-                                {
-                                    new RequiredAttributeDescriptor { Name = "class" }
-                                })
-                        }
+                        CreateTagHelperDescriptor(
+                            "input",
+                            typeof(MultiAttributeSameTagRequiredAttributeTagHelper).FullName,
+                            AssemblyName,
+                            ruleBuilders: new Action<TagMatchingRuleBuilder>[]
+                            {
+                                builder => builder.RequireAttribute(attribute => attribute.Name("style")),
+                                builder => builder.RequireAttribute(attribute => attribute.Name("class")),
+                            })
                     },
                     {
                         typeof(MultiRequiredAttributeTagHelper),
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                "input",
-                                typeof(MultiRequiredAttributeTagHelper).FullName,
-                                AssemblyName,
-                                attributes,
-                                requiredAttributes: new[]
-                                {
-                                    new RequiredAttributeDescriptor { Name = "class" },
-                                    new RequiredAttributeDescriptor { Name = "style" }
-                                })
-                        }
+                        CreateTagHelperDescriptor(
+                            "input",
+                            typeof(MultiRequiredAttributeTagHelper).FullName,
+                            AssemblyName,
+                            ruleBuilders: new Action<TagMatchingRuleBuilder>[]
+                            {
+                                builder => builder
+                                    .RequireAttribute(attribute => attribute.Name("class"))
+                                    .RequireAttribute(attribute => attribute.Name("style")),
+                            })
                     },
                     {
                         typeof(MultiTagMultiRequiredAttributeTagHelper),
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                "div",
-                                typeof(MultiTagMultiRequiredAttributeTagHelper).FullName,
-                                AssemblyName,
-                                attributes,
-                                requiredAttributes: new[]
-                                {
-                                    new RequiredAttributeDescriptor { Name = "class" },
-                                    new RequiredAttributeDescriptor { Name = "style" }
-                                }),
-                            CreateTagHelperDescriptor(
-                                "input",
-                                typeof(MultiTagMultiRequiredAttributeTagHelper).FullName,
-                                AssemblyName,
-                                attributes,
-                                requiredAttributes: new[] {
-                                    new RequiredAttributeDescriptor { Name = "class" },
-                                    new RequiredAttributeDescriptor { Name = "style" }
-                                }),
-                        }
+                        CreateTagHelperDescriptor(
+                            "div",
+                            typeof(MultiTagMultiRequiredAttributeTagHelper).FullName,
+                            AssemblyName,
+                            ruleBuilders: new Action<TagMatchingRuleBuilder>[]
+                            {
+                                builder => builder
+                                    .RequireTagName("div")
+                                    .RequireAttribute(attribute => attribute.Name("class"))
+                                    .RequireAttribute(attribute => attribute.Name("style")),
+                                builder => builder
+                                    .RequireTagName("input")
+                                    .RequireAttribute(attribute => attribute.Name("class"))
+                                    .RequireAttribute(attribute => attribute.Name("style")),
+                            })
                     },
                     {
                         typeof(AttributeWildcardTargetingTagHelper),
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                TagHelperDescriptorProvider.ElementCatchAllTarget,
-                                typeof(AttributeWildcardTargetingTagHelper).FullName,
-                                AssemblyName,
-                                attributes,
-                                requiredAttributes: new[]
-                                {
-                                    new RequiredAttributeDescriptor
-                                    {
-                                        Name = "class",
-                                        NameComparison = TagHelperRequiredAttributeNameComparison.PrefixMatch,
-                                    }
-                                })
-                        }
+                        CreateTagHelperDescriptor(
+                            TagHelperDescriptorProvider.ElementCatchAllTarget,
+                            typeof(AttributeWildcardTargetingTagHelper).FullName,
+                            AssemblyName,
+                            ruleBuilders: new Action<TagMatchingRuleBuilder>[]
+                            {
+                                builder => builder
+                                    .RequireAttribute(attribute => attribute
+                                        .Name("class")
+                                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch)),
+                            })
                     },
                     {
                         typeof(MultiAttributeWildcardTargetingTagHelper),
-                        new[]
-                        {
-                            CreateTagHelperDescriptor(
-                                TagHelperDescriptorProvider.ElementCatchAllTarget,
-                                typeof(MultiAttributeWildcardTargetingTagHelper).FullName,
-                                AssemblyName,
-                                attributes,
-                                requiredAttributes: new[]
-                                {
-                                    new RequiredAttributeDescriptor
-                                    {
-                                        Name = "class",
-                                        NameComparison = TagHelperRequiredAttributeNameComparison.PrefixMatch,
-                                    },
-                                    new RequiredAttributeDescriptor
-                                    {
-                                        Name = "style",
-                                        NameComparison = TagHelperRequiredAttributeNameComparison.PrefixMatch,
-                                    }
-                                    })
-                        }
+                        CreateTagHelperDescriptor(
+                            TagHelperDescriptorProvider.ElementCatchAllTarget,
+                            typeof(MultiAttributeWildcardTargetingTagHelper).FullName,
+                            AssemblyName,
+                            ruleBuilders: new Action<TagMatchingRuleBuilder>[]
+                            {
+                                builder => builder
+                                    .RequireAttribute(attribute => attribute
+                                        .Name("class")
+                                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch))
+                                    .RequireAttribute(attribute => attribute
+                                        .Name("style")
+                                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch)),
+                            })
                     },
                 };
             }
@@ -990,29 +905,19 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         [Theory]
         [MemberData(nameof(AttributeTargetData))]
-        public void CreateDescriptors_ReturnsExpectedDescriptors(
+        public void CreateDescriptor_ReturnsExpectedDescriptors(
             Type tagHelperType,
-            IEnumerable<TagHelperDescriptor> expectedDescriptors)
+            TagHelperDescriptor expectedDescriptor)
         {
             // Arrange
-            var errorSink = new ErrorSink();
             var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
             var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperType.FullName);
 
             // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+            var descriptor = factory.CreateDescriptor(typeSymbol);
 
             // Assert
-            Assert.Empty(errorSink.Errors);
-
-            // We don't care about order. Mono returns reflected attributes differently so we need to ensure order
-            // doesn't matter by sorting.
-            descriptors = descriptors.OrderBy(
-                descriptor => CaseSensitiveTagHelperDescriptorComparer.Default.GetHashCode(descriptor)).ToArray();
-            expectedDescriptors = expectedDescriptors.OrderBy(
-                descriptor => CaseSensitiveTagHelperDescriptorComparer.Default.GetHashCode(descriptor)).ToArray();
-
-            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
+            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         public static TheoryData HtmlCaseData
@@ -1036,1600 +941,1609 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         [Theory]
         [MemberData(nameof(HtmlCaseData))]
-        public void CreateDescriptors_HtmlCasesTagNameAndAttributeName(
+        public void CreateDescriptor_HtmlCasesTagNameAndAttributeName(
             Type tagHelperType,
             string expectedTagName,
             string expectedAttributeName)
         {
             // Arrange
-            var errorSink = new ErrorSink();
             var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
             var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperType.FullName);
 
             // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+            var descriptor = factory.CreateDescriptor(typeSymbol);
 
             // Assert
-            Assert.Empty(errorSink.Errors);
-            var descriptor = Assert.Single(descriptors);
-            Assert.Equal(expectedTagName, descriptor.TagName, StringComparer.Ordinal);
+            var rule = Assert.Single(descriptor.TagMatchingRules);
+            Assert.Equal(expectedTagName, rule.TagName, StringComparer.Ordinal);
             var attributeDescriptor = Assert.Single(descriptor.BoundAttributes);
             Assert.Equal(expectedAttributeName, attributeDescriptor.Name);
         }
 
         [Fact]
-        public void CreateDescriptors_OverridesAttributeNameFromAttribute()
+        public void CreateDescriptor_OverridesAttributeNameFromAttribute()
         {
             // Arrange
-            var errorSink = new ErrorSink();
             var validProperty1 = typeof(OverriddenAttributeTagHelper).GetProperty(
                 nameof(OverriddenAttributeTagHelper.ValidAttribute1));
             var validProperty2 = typeof(OverriddenAttributeTagHelper).GetProperty(
                 nameof(OverriddenAttributeTagHelper.ValidAttribute2));
-            var expectedDescriptors = new[]
-            {
+            var expectedDescriptor =
                 CreateTagHelperDescriptor(
                     "overridden-attribute",
                     typeof(OverriddenAttributeTagHelper).FullName,
                     AssemblyName,
-                    new[]
+                    new Action<ITagHelperBoundAttributeDescriptorBuilder>[]
                     {
-                        CreateTagHelperAttributeDescriptor("SomethingElse", validProperty1),
-                        CreateTagHelperAttributeDescriptor("Something-Else", validProperty2)
-                    })
-            };
+                        builder => builder
+                            .Name("SomethingElse")
+                            .PropertyName(validProperty1.Name)
+                            .TypeName(validProperty1.PropertyType.FullName),
+                        builder => builder
+                            .Name("Something-Else")
+                            .PropertyName(validProperty2.Name)
+                            .TypeName(validProperty2.PropertyType.FullName),
+                    });
             var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
             var typeSymbol = Compilation.GetTypeByMetadataName(typeof(OverriddenAttributeTagHelper).FullName);
 
             // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+            var descriptor = factory.CreateDescriptor(typeSymbol);
 
             // Assert
-            Assert.Empty(errorSink.Errors);
-            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
+            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         [Fact]
-        public void CreateDescriptors_DoesNotInheritOverridenAttributeName()
+        public void CreateDescriptor_DoesNotInheritOverridenAttributeName()
         {
             // Arrange
-            var errorSink = new ErrorSink();
             var validProperty1 = typeof(InheritedOverriddenAttributeTagHelper).GetProperty(
                 nameof(InheritedOverriddenAttributeTagHelper.ValidAttribute1));
             var validProperty2 = typeof(InheritedOverriddenAttributeTagHelper).GetProperty(
                 nameof(InheritedOverriddenAttributeTagHelper.ValidAttribute2));
-            var expectedDescriptors = new[]
-            {
+            var expectedDescriptor =
                 CreateTagHelperDescriptor(
                     "inherited-overridden-attribute",
                     typeof(InheritedOverriddenAttributeTagHelper).FullName,
                     AssemblyName,
-                    new[]
+                    new Action<ITagHelperBoundAttributeDescriptorBuilder>[]
                     {
-                        CreateTagHelperAttributeDescriptor("valid-attribute1", validProperty1),
-                        CreateTagHelperAttributeDescriptor("Something-Else", validProperty2)
-                    })
-            };
+                        builder => builder
+                            .Name("valid-attribute1")
+                            .PropertyName(validProperty1.Name)
+                            .TypeName(validProperty1.PropertyType.FullName),
+                        builder => builder
+                            .Name("Something-Else")
+                            .PropertyName(validProperty2.Name)
+                            .TypeName(validProperty2.PropertyType.FullName),
+                    });
             var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
             var typeSymbol = Compilation.GetTypeByMetadataName(typeof(InheritedOverriddenAttributeTagHelper).FullName);
 
             // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+            var descriptor = factory.CreateDescriptor(typeSymbol);
 
             // Assert
-            Assert.Empty(errorSink.Errors);
-            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
-        }
-
-        [Fact]
-        public void CreateDescriptors_AllowsOverridenAttributeNameOnUnimplementedVirtual()
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var validProperty1 = typeof(InheritedNotOverriddenAttributeTagHelper).GetProperty(
-                nameof(InheritedNotOverriddenAttributeTagHelper.ValidAttribute1));
-            var validProperty2 = typeof(InheritedNotOverriddenAttributeTagHelper).GetProperty(
-                nameof(InheritedNotOverriddenAttributeTagHelper.ValidAttribute2));
-            var expectedDescriptors = new[]
-            {
-                CreateTagHelperDescriptor(
-                    "inherited-not-overridden-attribute",
-                    typeof(InheritedNotOverriddenAttributeTagHelper).FullName,
-                    AssemblyName,
-                    new[]
-                    {
-                        CreateTagHelperAttributeDescriptor("SomethingElse", validProperty1),
-                        CreateTagHelperAttributeDescriptor("Something-Else", validProperty2)
-                    })
-            };
-            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
-            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(InheritedNotOverriddenAttributeTagHelper).FullName);
-
-            // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
-            // Assert
-            Assert.Empty(errorSink.Errors);
-            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
-        }
-
-        [Fact]
-        public void CreateDescriptors_BuildsDescriptorsWithInheritedProperties()
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var expectedDescriptor = CreateTagHelperDescriptor(
-                "inherited-single-attribute",
-                typeof(InheritedSingleAttributeTagHelper).FullName,
-                AssemblyName,
-                new[]
-                {
-                    new BoundAttributeDescriptor
-                    {
-                        Name = "int-attribute",
-                        PropertyName = nameof(InheritedSingleAttributeTagHelper.IntAttribute),
-                        TypeName = typeof(int).FullName
-                    }
-                });
-            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
-            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(InheritedSingleAttributeTagHelper).FullName);
-
-            // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
-
-            // Assert
-            Assert.Empty(errorSink.Errors);
-            var descriptor = Assert.Single(descriptors);
             Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
-        [Fact]
-        public void CreateDescriptors_BuildsDescriptorsWithConventionNames()
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var intProperty = typeof(SingleAttributeTagHelper).GetProperty(nameof(SingleAttributeTagHelper.IntAttribute));
-            var expectedDescriptor = CreateTagHelperDescriptor(
-                "single-attribute",
-                typeof(SingleAttributeTagHelper).FullName,
-                AssemblyName,
-                new[]
-                {
-                    CreateTagHelperAttributeDescriptor("int-attribute", intProperty)
-                });
-            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
-            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(SingleAttributeTagHelper).FullName);
-
-            // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
-
-            // Assert
-            Assert.Empty(errorSink.Errors);
-            var descriptor = Assert.Single(descriptors);
-            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
-        }
-
-        [Fact]
-        public void CreateDescriptors_OnlyAcceptsPropertiesWithGetAndSet()
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var validProperty = typeof(MissingAccessorTagHelper).GetProperty(
-                nameof(MissingAccessorTagHelper.ValidAttribute));
-            var expectedDescriptor = CreateTagHelperDescriptor(
-                "missing-accessor",
-                typeof(MissingAccessorTagHelper).FullName,
-                AssemblyName,
-                new[]
-                {
-                    CreateTagHelperAttributeDescriptor("valid-attribute", validProperty)
-                });
-            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
-            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(MissingAccessorTagHelper).FullName);
-
-            // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
-
-            // Assert
-            Assert.Empty(errorSink.Errors);
-            var descriptor = Assert.Single(descriptors);
-            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
-        }
-
-        [Fact]
-        public void CreateDescriptors_OnlyAcceptsPropertiesWithPublicGetAndSet()
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var validProperty = typeof(NonPublicAccessorTagHelper).GetProperty(
-                nameof(NonPublicAccessorTagHelper.ValidAttribute));
-            var expectedDescriptor = CreateTagHelperDescriptor(
-                "non-public-accessor",
-                typeof(NonPublicAccessorTagHelper).FullName,
-                AssemblyName,
-                new[]
-                {
-                    CreateTagHelperAttributeDescriptor("valid-attribute", validProperty)
-                });
-            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
-            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(NonPublicAccessorTagHelper).FullName);
-
-            // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
-
-            // Assert
-            Assert.Empty(errorSink.Errors);
-            var descriptor = Assert.Single(descriptors);
-            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
-        }
-
-        [Fact]
-        public void CreateDescriptors_DoesNotIncludePropertiesWithNotBound()
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var expectedDescriptor = CreateTagHelperDescriptor(
-                "not-bound-attribute",
-                typeof(NotBoundAttributeTagHelper).FullName,
-                AssemblyName,
-                new[]
-                {
-                    new BoundAttributeDescriptor
-                    {
-                        Name = "bound-property",
-                        PropertyName = nameof(NotBoundAttributeTagHelper.BoundProperty),
-                        TypeName = typeof(object).FullName
-                    }
-                });
-            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
-            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(NotBoundAttributeTagHelper).FullName);
-
-            // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol,
-                errorSink: errorSink);
-
-            // Assert
-            Assert.Empty(errorSink.Errors);
-            var descriptor = Assert.Single(descriptors);
-            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
-        }
-
-        [Fact(Skip = "#364")]
-        public void CreateDescriptors_AddsErrorForTagHelperWithDuplicateAttributeNames()
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
-            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(DuplicateAttributeNameTagHelper).FullName);
-
-            // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
-
-            // Assert
-            Assert.Empty(descriptors);
-            var error = Assert.Single(errorSink.Errors);
-        }
-
-        [Fact]
-        public void CreateDescriptors_ResolvesMultipleTagHelperDescriptorsFromSingleType()
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var expectedDescriptors = new[]
-            {
-                CreateTagHelperDescriptor(
-                    "div",
-                    typeof(MultiTagTagHelper).FullName,
-                    AssemblyName,
-                    new[]
-                    {
-                        new BoundAttributeDescriptor
-                        {
-                            Name = "valid-attribute",
-                            PropertyName = nameof(MultiTagTagHelper.ValidAttribute),
-                            TypeName = typeof(string).FullName,
-                            IsStringProperty = true
-                        }
-                    }),
-                CreateTagHelperDescriptor(
-                    "p",
-                    typeof(MultiTagTagHelper).FullName,
-                    AssemblyName,
-                    new[]
-                    {
-                        new BoundAttributeDescriptor
-                        {
-                            Name = "valid-attribute",
-                            PropertyName = nameof(MultiTagTagHelper.ValidAttribute),
-                            TypeName = typeof(string).FullName,
-                            IsStringProperty = true
-                        }
-                    })
-            };
-            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
-            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(MultiTagTagHelper).FullName);
-
-            // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
-
-            // Assert
-            Assert.Empty(errorSink.Errors);
-
-            // We don't care about order. Mono returns reflected attributes differently so we need to ensure order
-            // doesn't matter by sorting.
-            descriptors = descriptors.OrderBy(descriptor => descriptor.TagName).ToArray();
-
-            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
-        }
-
-        [Fact]
-        public void CreateDescriptors_DoesNotResolveInheritedTagNames()
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var validProp = typeof(InheritedMultiTagTagHelper).GetProperty(nameof(InheritedMultiTagTagHelper.ValidAttribute));
-            var expectedDescriptor = CreateTagHelperDescriptor(
-                    "inherited-multi-tag",
-                    typeof(InheritedMultiTagTagHelper).FullName,
-                    AssemblyName,
-                    new[]
-                    {
-                        CreateTagHelperAttributeDescriptor("valid-attribute", validProp)
-                    });
-            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
-            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(InheritedMultiTagTagHelper).FullName);
-
-            // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
-
-            // Assert
-            Assert.Empty(errorSink.Errors);
-            var descriptor = Assert.Single(descriptors);
-            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
-        }
-
-        [Fact]
-        public void CreateDescriptors_IgnoresDuplicateTagNamesFromAttribute()
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var expectedDescriptors = new[]
-            {
-                CreateTagHelperDescriptor(
-                    "div",
-                    typeof(DuplicateTagNameTagHelper).FullName,
-                    AssemblyName),
-                CreateTagHelperDescriptor(
-                    "p",
-                    typeof(DuplicateTagNameTagHelper).FullName,
-                    AssemblyName)
-            };
-            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
-            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(DuplicateTagNameTagHelper).FullName);
-
-            // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
-
-            // Assert
-            Assert.Empty(errorSink.Errors);
-
-            // We don't care about order. Mono returns reflected attributes differently so we need to ensure order
-            // doesn't matter by sorting.
-            descriptors = descriptors.OrderBy(descriptor => descriptor.TagName).ToArray();
-
-            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
-        }
-
-        [Fact]
-        public void CreateDescriptors_OverridesTagNameFromAttribute()
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var expectedDescriptors = new[]
-            {
-                CreateTagHelperDescriptor(
-                    "data-condition",
-                    typeof(OverrideNameTagHelper).FullName,
-                    AssemblyName),
-            };
-            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
-            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(OverrideNameTagHelper).FullName);
-
-            // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
-
-            // Assert
-            Assert.Empty(errorSink.Errors);
-            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
-        }
-
-        // name, expectedErrorMessages
-        public static TheoryData<string, string[]> InvalidNameData
-        {
-            get
-            {
-                Func<string, string, string> onNameError =
-                    (invalidText, invalidCharacter) => $"Tag helpers cannot target tag name '{ invalidText }' " +
-                        $"because it contains a '{ invalidCharacter }' character.";
-                var whitespaceErrorString = "Tag name cannot be null or whitespace.";
-
-                var data = GetInvalidNameOrPrefixData(onNameError, whitespaceErrorString, onDataError: null);
-                data.Add(string.Empty, new[] { whitespaceErrorString });
-
-                return data;
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(InvalidNameData))]
-        public void ValidHtmlTargetElementAttributeNames_CreatesErrorOnInvalidNames(
-            string name, string[] expectedErrorMessages)
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            name = name.Replace("\n", "\\n").Replace("\r", "\\r").Replace("\"", "\\\"");
-            var text = $@"
-[{typeof(AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute).FullName}(""{name}"")]
-public class DynamicTestTagHelper : {typeof(AspNetCore.Razor.TagHelpers.TagHelper).FullName}
-{{
-}}";
-            var syntaxTree = CSharpSyntaxTree.ParseText(text);
-            var compilation = TestCompilation.Create(syntaxTree);
-            var tagHelperType = compilation.GetTypeByMetadataName("DynamicTestTagHelper");
-            var attribute = tagHelperType.GetAttributes().Single();
-
-            // Act
-            DefaultTagHelperDescriptorFactory.ValidHtmlTargetElementAttributeNames(attribute, errorSink);
-
-            // Assert
-            var errors = errorSink.Errors.ToArray();
-            Assert.Equal(expectedErrorMessages.Length, errors.Length);
-            for (var i = 0; i < expectedErrorMessages.Length; i++)
-            {
-                Assert.Equal(0, errors[i].Length);
-                Assert.Equal(SourceLocation.Zero, errors[i].Location);
-                Assert.Equal(expectedErrorMessages[i], errors[i].Message, StringComparer.Ordinal);
-            }
-        }
-
-        public static TheoryData ValidNameData
-        {
-            get
-            {
-                // name, expectedNames
-                return new TheoryData<string, IEnumerable<string>>
-                {
-                    { "p", new[] { "p" } },
-                    { " p", new[] { "p" } },
-                    { "p ", new[] { "p" } },
-                    { " p ", new[] { "p" } },
-                    { "p,div", new[] { "p", "div" } },
-                    { " p,div", new[] { "p", "div" } },
-                    { "p ,div", new[] { "p", "div" } },
-                    { " p ,div", new[] { "p", "div" } },
-                    { "p, div", new[] { "p", "div" } },
-                    { "p,div ", new[] { "p", "div" } },
-                    { "p, div ", new[] { "p", "div" } },
-                    { " p, div ", new[] { "p", "div" } },
-                    { " p , div ", new[] { "p", "div" } },
-                };
-            }
-        }
-
-        public static TheoryData InvalidTagHelperAttributeDescriptorData
-        {
-            get
-            {
-                var errorFormat = "Invalid tag helper bound property '{0}.{1}'. Tag helpers cannot bind to HTML " +
-                    "attributes with name '{2}' because name starts with 'data-'.";
-
-                // type, expectedAttributeDescriptors, expectedErrors
-                return new TheoryData<Type, IEnumerable<BoundAttributeDescriptor>, string[]>
-                {
-                    {
-                        typeof(InvalidBoundAttribute),
-                        Enumerable.Empty<BoundAttributeDescriptor>(),
-                        new[]
-                        {
-                            string.Format(
-                                errorFormat,
-                                typeof(InvalidBoundAttribute).FullName,
-                                nameof(InvalidBoundAttribute.DataSomething),
-                                "data-something")
-                        }
-                    },
-                    {
-                        typeof(InvalidBoundAttributeWithValid),
-                        new[]
-                        {
-                            CreateTagHelperAttributeDescriptor(
-                                "int-attribute",
-                                typeof(InvalidBoundAttributeWithValid)
-                                    .GetProperty(nameof(InvalidBoundAttributeWithValid.IntAttribute)))
-                        },
-                        new[]
-                        {
-                            string.Format(
-                                errorFormat,
-                                typeof(InvalidBoundAttributeWithValid).FullName,
-                                nameof(InvalidBoundAttributeWithValid.DataSomething),
-                                "data-something")
-                        }
-                    },
-                    {
-                        typeof(OverriddenInvalidBoundAttributeWithValid),
-                        new[]
-                        {
-                            CreateTagHelperAttributeDescriptor(
-                                "valid-something",
-                                typeof(OverriddenInvalidBoundAttributeWithValid)
-                                    .GetProperty(nameof(OverriddenInvalidBoundAttributeWithValid.DataSomething)))
-                        },
-                        new string[0]
-                    },
-                    {
-                        typeof(OverriddenValidBoundAttributeWithInvalid),
-                        Enumerable.Empty<BoundAttributeDescriptor>(),
-                        new[]
-                        {
-                            string.Format(
-                                errorFormat,
-                                typeof(OverriddenValidBoundAttributeWithInvalid).FullName,
-                                nameof(OverriddenValidBoundAttributeWithInvalid.ValidSomething),
-                                "data-something")
-                        }
-                    },
-                    {
-                        typeof(OverriddenValidBoundAttributeWithInvalidUpperCase),
-                        Enumerable.Empty<BoundAttributeDescriptor>(),
-                        new[]
-                        {
-                            string.Format(
-                                errorFormat,
-                                typeof(OverriddenValidBoundAttributeWithInvalidUpperCase).FullName,
-                                nameof(OverriddenValidBoundAttributeWithInvalidUpperCase.ValidSomething),
-                                "DATA-SOMETHING")
-                        }
-                    },
-                };
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(InvalidTagHelperAttributeDescriptorData))]
-        public void CreateDescriptors_DoesNotAllowDataDashAttributes(
-            Type type,
-            IEnumerable<BoundAttributeDescriptor> expectedAttributeDescriptors,
-            string[] expectedErrors)
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
-            var typeSymbol = Compilation.GetTypeByMetadataName(type.FullName);
-
-            // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
-
-            // Assert
-            var actualErrors = errorSink.Errors.ToArray();
-            Assert.Equal(expectedErrors.Length, actualErrors.Length);
-
-            for (var i = 0; i < actualErrors.Length; i++)
-            {
-                var actualError = actualErrors[i];
-                Assert.Equal(0, actualError.Length);
-                Assert.Equal(SourceLocation.Zero, actualError.Location);
-                Assert.Equal(expectedErrors[i], actualError.Message, StringComparer.Ordinal);
-            }
-
-            var actualDescriptor = Assert.Single(descriptors);
-            Assert.Equal(
-                expectedAttributeDescriptors,
-                actualDescriptor.BoundAttributes,
-                TagHelperAttributeDescriptorComparer.Default);
-        }
-
-        // tagTelperType, expectedAttributeDescriptors, expectedErrorMessages
-        public static TheoryData<Type, IEnumerable<BoundAttributeDescriptor>, string[]> TagHelperWithPrefixData
-        {
-            get
-            {
-                Func<string, string, string> onError = (typeName, propertyName) =>
-                    $"Invalid tag helper bound property '{ typeName }.{ propertyName }'. " +
-                    $"'{ typeof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute).FullName }." +
-                    $"{ nameof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute.DictionaryAttributePrefix) }' must be null unless " +
-                    "property type implements 'IDictionary<string, TValue>'.";
-                var dictionaryNamespace = typeof(IDictionary<,>).FullName;
-                dictionaryNamespace = dictionaryNamespace.Substring(0, dictionaryNamespace.IndexOf('`'));
-
-                // tagTelperType, expectedAttributeDescriptors, expectedErrorMessages
-                return new TheoryData<Type, IEnumerable<BoundAttributeDescriptor>, string[]>
-                {
-                    {
-                        typeof(DefaultValidHtmlAttributePrefix),
-                        new[]
-                        {
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "dictionary-property",
-                                PropertyName = nameof(DefaultValidHtmlAttributePrefix.DictionaryProperty),
-                                TypeName = $"{dictionaryNamespace}<System.String, System.String>"
-                            },
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "dictionary-property-",
-                                PropertyName = nameof(DefaultValidHtmlAttributePrefix.DictionaryProperty),
-                                TypeName = typeof(string).FullName,
-                                IsIndexer = true
-                            }
-                        },
-                        new string[0]
-                    },
-                    {
-                        typeof(SingleValidHtmlAttributePrefix),
-                        new[]
-                        {
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "valid-name",
-                                PropertyName = nameof(SingleValidHtmlAttributePrefix.DictionaryProperty),
-                                TypeName = $"{dictionaryNamespace}<System.String, System.String>"
-                            },
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "valid-name-",
-                                PropertyName = nameof(SingleValidHtmlAttributePrefix.DictionaryProperty),
-                                TypeName = typeof(string).FullName,
-                                IsIndexer = true
-                            }
-                        },
-                        new string[0]
-                    },
-                    {
-                        typeof(MultipleValidHtmlAttributePrefix),
-                        new[]
-                        {
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "valid-name1",
-                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.DictionaryProperty),
-                                TypeName = $"{typeof(Dictionary<,>).Namespace}.Dictionary<System.String, System.Object>"
-                            },
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "valid-name2",
-                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.DictionarySubclassProperty),
-                                TypeName = typeof(DictionarySubclass).FullName
-                            },
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "valid-name3",
-                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.DictionaryWithoutParameterlessConstructorProperty),
-                                TypeName = typeof(DictionaryWithoutParameterlessConstructor).FullName
-                            },
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "valid-name4",
-                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.GenericDictionarySubclassProperty),
-                                TypeName = typeof(GenericDictionarySubclass<object>).Namespace + ".GenericDictionarySubclass<System.Object>"
-                            },
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "valid-name5",
-                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.SortedDictionaryProperty),
-                                TypeName = typeof(SortedDictionary<string, int>).Namespace + ".SortedDictionary<System.String, System.Int32>"
-                            },
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "valid-name6",
-                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.StringProperty),
-                                TypeName = typeof(string).FullName,
-                                IsStringProperty = true,
-                            },
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "valid-prefix1-",
-                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.DictionaryProperty),
-                                TypeName = typeof(object).FullName,
-                                IsIndexer = true
-                            },
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "valid-prefix2-",
-                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.DictionarySubclassProperty),
-                                TypeName = typeof(string).FullName,
-                                IsIndexer = true
-                            },
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "valid-prefix3-",
-                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.DictionaryWithoutParameterlessConstructorProperty),
-                                TypeName = typeof(string).FullName,
-                                IsIndexer = true
-                            },
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "valid-prefix4-",
-                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.GenericDictionarySubclassProperty),
-                                TypeName = typeof(object).FullName,
-                                IsIndexer = true
-                            },
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "valid-prefix5-",
-                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.SortedDictionaryProperty),
-                                TypeName = typeof(int).FullName,
-                                IsIndexer = true
-                            },
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "get-only-dictionary-property-",
-                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.GetOnlyDictionaryProperty),
-                                TypeName = typeof(int).FullName,
-                                IsIndexer = true
-                            },
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "valid-prefix6",
-                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.GetOnlyDictionaryPropertyWithAttributePrefix),
-                                TypeName = typeof(string).FullName,
-                                IsIndexer = true
-                            }
-                        },
-                        new string[0]
-                    },
-                    {
-                        typeof(SingleInvalidHtmlAttributePrefix),
-                        Enumerable.Empty<BoundAttributeDescriptor>(),
-                        new[]
-                        {
-                            onError(
-                                typeof(SingleInvalidHtmlAttributePrefix).FullName,
-                                nameof(SingleInvalidHtmlAttributePrefix.StringProperty)),
-                        }
-                    },
-                    {
-                        typeof(MultipleInvalidHtmlAttributePrefix),
-                        new[]
-                        {
-                            new BoundAttributeDescriptor
-                            {
-                                Name = "valid-name1",
-                                PropertyName = nameof(MultipleInvalidHtmlAttributePrefix.LongProperty),
-                                TypeName = typeof(long).FullName
-                            }
-                        },
-                        new[]
-                        {
-                            onError(
-                                typeof(MultipleInvalidHtmlAttributePrefix).FullName,
-                                nameof(MultipleInvalidHtmlAttributePrefix.DictionaryOfIntProperty)),
-                            onError(
-                                typeof(MultipleInvalidHtmlAttributePrefix).FullName,
-                                nameof(MultipleInvalidHtmlAttributePrefix.ReadOnlyDictionaryProperty)),
-                            onError(
-                                typeof(MultipleInvalidHtmlAttributePrefix).FullName,
-                                nameof(MultipleInvalidHtmlAttributePrefix.IntProperty)),
-                            onError(
-                                typeof(MultipleInvalidHtmlAttributePrefix).FullName,
-                                nameof(MultipleInvalidHtmlAttributePrefix.DictionaryOfIntSubclassProperty)),
-                            onError(
-                                typeof(MultipleInvalidHtmlAttributePrefix).FullName,
-                                nameof(MultipleInvalidHtmlAttributePrefix.GetOnlyDictionaryAttributePrefix)),
-                            $"Invalid tag helper bound property '{ typeof(MultipleInvalidHtmlAttributePrefix).FullName }." +
-                            $"{ nameof(MultipleInvalidHtmlAttributePrefix.GetOnlyDictionaryPropertyWithAttributeName) }'. " +
-                            $"'{ typeof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute).FullName }." +
-                            $"{ nameof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute.Name) }' must be null or empty if property has " +
-                            "no public setter.",
-                        }
-                    },
-                };
-            }
-        }
-
-        public static TheoryData<string> ValidAttributeNameData
-        {
-            get
-            {
-                return new TheoryData<string>
-                {
-                    "data",
-                    "dataa-",
-                    "ValidName",
-                    "valid-name",
-                    "--valid--name--",
-                    ",,--__..oddly.valid::;;",
-                };
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(ValidAttributeNameData))]
-        public void ValidateTagHelperAttributeDescriptor_WithValidName_ReturnsTrue(string name)
-        {
-            // Arrange
-            var descriptor = new BoundAttributeDescriptor
-            {
-                Name = name,
-                PropertyName = "ValidProperty",
-                TypeName = "PropertyType"
-            };
-            var errorSink = new ErrorSink();
-            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(MultiTagTagHelper).FullName);
-
-            // Act
-            var result = DefaultTagHelperDescriptorFactory.ValidateTagHelperAttributeDescriptor(
-                descriptor,
-                typeSymbol,
-                errorSink);
-
-            // Assert
-            Assert.True(result);
-            Assert.Empty(errorSink.Errors);
-        }
-
-        public static TheoryData<string> ValidAttributePrefixData
-        {
-            get
-            {
-                return new TheoryData<string>
-                {
-                    string.Empty,
-                    "data",
-                    "dataa-",
-                    "ValidName",
-                    "valid-name",
-                    "--valid--name--",
-                    ",,--__..oddly.valid::;;",
-                };
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(ValidAttributePrefixData))]
-        public void ValidateTagHelperAttributeDescriptor_WithValidPrefix_ReturnsTrue(string prefix)
-        {
-            // Arrange
-            var descriptor = new BoundAttributeDescriptor
-            {
-                Name = prefix,
-                PropertyName = "ValidProperty",
-                TypeName = "PropertyType",
-                IsIndexer = true
-            };
-            var errorSink = new ErrorSink();
-            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(MultiTagTagHelper).FullName);
-
-            // Act
-            var result = DefaultTagHelperDescriptorFactory.ValidateTagHelperAttributeDescriptor(
-                descriptor,
-                typeSymbol,
-                errorSink);
-
-            // Assert
-            Assert.True(result);
-            Assert.Empty(errorSink.Errors);
-        }
-
-        // name, expectedErrorMessages
-        public static TheoryData<string, string[]> InvalidAttributeNameData
-        {
-            get
-            {
-                Func<string, string, string> onNameError = (invalidText, invalidCharacter) => "Invalid tag helper " +
-                    $"bound property '{ typeof(MultiTagTagHelper).FullName }.InvalidProperty'. Tag helpers cannot " +
-                    $"bind to HTML attributes with name '{ invalidText }' because name contains a " +
-                    $"'{ invalidCharacter }' character.";
-                var whitespaceErrorString = "Invalid tag helper bound property " +
-                    $"'{ typeof(MultiTagTagHelper).FullName }.InvalidProperty'. Tag helpers cannot bind to HTML " +
-                    "attributes with a whitespace name.";
-                Func<string, string> onDataError = invalidText => "Invalid tag helper bound property " +
-                    $"'{ typeof(MultiTagTagHelper).FullName }.InvalidProperty'. Tag helpers cannot bind to HTML " +
-                    $"attributes with name '{ invalidText }' because name starts with 'data-'.";
-
-                return GetInvalidNameOrPrefixData(onNameError, whitespaceErrorString, onDataError);
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(InvalidAttributeNameData))]
-        public void ValidateTagHelperAttributeDescriptor_WithInvalidName_AddsExpectedErrors(
-            string name,
-            string[] expectedErrorMessages)
-        {
-            // Arrange
-            var descriptor = new BoundAttributeDescriptor
-            {
-                Name = name,
-                PropertyName = "InvalidProperty",
-                TypeName = "PropertyType"
-            };
-            var errorSink = new ErrorSink();
-            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(MultiTagTagHelper).FullName);
-
-            // Act
-            var result = DefaultTagHelperDescriptorFactory.ValidateTagHelperAttributeDescriptor(
-                descriptor,
-                typeSymbol,
-                errorSink);
-
-            // Assert
-            Assert.False(result);
-
-            var errors = errorSink.Errors.ToArray();
-            Assert.Equal(expectedErrorMessages.Length, errors.Length);
-            for (var i = 0; i < expectedErrorMessages.Length; i++)
-            {
-                Assert.Equal(0, errors[i].Length);
-                Assert.Equal(SourceLocation.Zero, errors[i].Location);
-                Assert.Equal(expectedErrorMessages[i], errors[i].Message, StringComparer.Ordinal);
-            }
-        }
-
-        // prefix, expectedErrorMessages
-        public static TheoryData<string, string[]> InvalidAttributePrefixData
-        {
-            get
-            {
-                Func<string, string, string> onPrefixError = (invalidText, invalidCharacter) => "Invalid tag helper " +
-                    $"bound property '{ typeof(MultiTagTagHelper).FullName }.InvalidProperty'. Tag helpers cannot " +
-                    $"bind to HTML attributes with prefix '{ invalidText }' because prefix contains a " +
-                    $"'{ invalidCharacter }' character.";
-                var whitespaceErrorString = "Invalid tag helper bound property " +
-                    $"'{ typeof(MultiTagTagHelper).FullName }.InvalidProperty'. Tag helpers cannot bind to HTML " +
-                    "attributes with a whitespace prefix.";
-                Func<string, string> onDataError = invalidText => "Invalid tag helper bound property " +
-                    $"'{ typeof(MultiTagTagHelper).FullName }.InvalidProperty'. Tag helpers cannot bind to HTML " +
-                    $"attributes with prefix '{ invalidText }' because prefix starts with 'data-'.";
-
-                return GetInvalidNameOrPrefixData(onPrefixError, whitespaceErrorString, onDataError);
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(InvalidAttributePrefixData))]
-        public void ValidateTagHelperAttributeDescriptor_WithInvalidPrefix_AddsExpectedErrors(
-            string prefix,
-            string[] expectedErrorMessages)
-        {
-            // Arrange
-            var descriptor = new BoundAttributeDescriptor
-            {
-                Name = prefix,
-                PropertyName = "InvalidProperty",
-                TypeName = "ValuesType",
-                IsIndexer = true
-            };
-            var errorSink = new ErrorSink();
-            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(MultiTagTagHelper).FullName);
-
-            // Act
-            var result = DefaultTagHelperDescriptorFactory.ValidateTagHelperAttributeDescriptor(
-                descriptor,
-                typeSymbol,
-                errorSink);
-
-            // Assert
-            Assert.False(result);
-
-            var errors = errorSink.Errors.ToArray();
-            Assert.Equal(expectedErrorMessages.Length, errors.Length);
-            for (var i = 0; i < expectedErrorMessages.Length; i++)
-            {
-                Assert.Equal(0, errors[i].Length);
-                Assert.Equal(SourceLocation.Zero, errors[i].Location);
-                Assert.Equal(expectedErrorMessages[i], errors[i].Message, StringComparer.Ordinal);
-            }
-        }
-
-        public static TheoryData<string, string[]> InvalidRestrictChildrenNameData
-        {
-            get
-            {
-                var nullOrWhiteSpaceError =
-                    Resources.FormatTagHelperDescriptorFactory_InvalidRestrictChildrenAttributeNameNullWhitespace(
-                        typeof(AspNetCore.Razor.TagHelpers.RestrictChildrenAttribute).FullName,
-                        "SomeTagHelper");
-
-                return GetInvalidNameOrPrefixData(
-                    onNameError: (invalidInput, invalidCharacter) =>
-                        Resources.FormatTagHelperDescriptorFactory_InvalidRestrictChildrenAttributeName(
-                            typeof(AspNetCore.Razor.TagHelpers.RestrictChildrenAttribute).FullName,
-                            invalidInput,
-                            "SomeTagHelper",
-                            invalidCharacter),
-                    whitespaceErrorString: nullOrWhiteSpaceError,
-                    onDataError: null);
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(InvalidRestrictChildrenNameData))]
-        public void GetValidAllowedChildren_AddsExpectedErrors(string name, string[] expectedErrorMessages)
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var expectedErrors = expectedErrorMessages.Select(
-                message => new RazorError(message, SourceLocation.Zero, 0));
-
-            // Act
-            DefaultTagHelperDescriptorFactory.GetValidAllowedChildren(new[] { name }, "SomeTagHelper", errorSink);
-
-            // Assert
-            Assert.Equal(expectedErrors, errorSink.Errors);
-        }
-
-        public static TheoryData<string, string[]> InvalidParentTagData
-        {
-            get
-            {
-                var nullOrWhiteSpaceError =
-                    Resources.FormatHtmlTargetElementAttribute_NameCannotBeNullOrWhitespace(
-                        Resources.TagHelperDescriptorFactory_ParentTag);
-
-                return GetInvalidNameOrPrefixData(
-                    onNameError: (invalidInput, invalidCharacter) =>
-                        Resources.FormatHtmlTargetElementAttribute_InvalidName(
-                            Resources.TagHelperDescriptorFactory_ParentTag.ToLower(),
-                            invalidInput,
-                            invalidCharacter),
-                    whitespaceErrorString: nullOrWhiteSpaceError,
-                    onDataError: null);
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(InvalidParentTagData))]
-        public void ValidateParentTagName_AddsExpectedErrors(string name, string[] expectedErrorMessages)
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var expectedErrors = expectedErrorMessages.Select(
-                message => new RazorError(message, SourceLocation.Zero, 0));
-
-            // Act
-            DefaultTagHelperDescriptorFactory.ValidateParentTagName(name, errorSink);
-
-            // Assert
-            Assert.Equal(expectedErrors, errorSink.Errors);
-        }
-
-        [Fact]
-        public void CreateDescriptors_BuildsDescriptorsFromSimpleTypes()
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var objectAssemblyName = typeof(Enumerable).GetTypeInfo().Assembly.GetName().Name;
-            var expectedDescriptor =
-                CreateTagHelperDescriptor("enumerable", "System.Linq.Enumerable", objectAssemblyName);
-            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
-            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(Enumerable).FullName);
-
-            // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
-
-            // Assert
-            Assert.Empty(errorSink.Errors);
-            var descriptor = Assert.Single(descriptors);
-            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
-        }
-
-        [Theory]
-        [MemberData(nameof(TagHelperWithPrefixData))]
-        public void CreateDescriptors_WithPrefixes_ReturnsExpectedAttributeDescriptors(
-            Type tagHelperType,
-            IEnumerable<BoundAttributeDescriptor> expectedAttributeDescriptors,
-            string[] expectedErrorMessages)
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
-            var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperType.FullName);
-
-            // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
-
-            // Assert
-            var errors = errorSink.Errors.ToArray();
-            Assert.Equal(expectedErrorMessages.Length, errors.Length);
-
-            for (var i = 0; i < errors.Length; i++)
-            {
-                Assert.Equal(0, errors[i].Length);
-                Assert.Equal(SourceLocation.Zero, errors[i].Location);
-                Assert.Equal(expectedErrorMessages[i], errors[i].Message, StringComparer.Ordinal);
-            }
-
-            var descriptor = Assert.Single(descriptors);
-            Assert.Equal(
-                expectedAttributeDescriptors,
-                descriptor.BoundAttributes,
-                TagHelperAttributeDescriptorComparer.Default);
-        }
-
-        public static TheoryData HtmlConversionData
-        {
-            get
-            {
-                return new TheoryData<string, string>
-                {
-                    { "SomeThing", "some-thing" },
-                    { "someOtherThing", "some-other-thing" },
-                    { "capsONInside", "caps-on-inside" },
-                    { "CAPSOnOUTSIDE", "caps-on-outside" },
-                    { "ALLCAPS", "allcaps" },
-                    { "One1Two2Three3", "one1-two2-three3" },
-                    { "ONE1TWO2THREE3", "one1two2three3" },
-                    { "First_Second_ThirdHi", "first_second_third-hi" }
-                };
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(HtmlConversionData))]
-        public void ToHtmlCase_ReturnsExpectedConversions(string input, string expectedOutput)
-        {
-            // Arrange, Act
-            var output = DefaultTagHelperDescriptorFactory.ToHtmlCase(input);
-
-            // Assert
-            Assert.Equal(output, expectedOutput);
-        }
-
-        public static TheoryData OutputElementHintData
-        {
-            get
-            {
-                // tagHelperType, expectedDescriptors
-                return new TheoryData<Type, TagHelperDescriptor[]>
-                {
-                    {
-                        typeof(MulitpleDescriptorTagHelperWithOutputElementHint),
-                        new[]
-                        {
-                            new TagHelperDescriptor
-                            {
-                                TagName = "a",
-                                TypeName = typeof(MulitpleDescriptorTagHelperWithOutputElementHint).FullName,
-                                AssemblyName = AssemblyName,
-                                DesignTimeDescriptor = new TagHelperDesignTimeDescriptor
-                                {
-                                    OutputElementHint = "div"
-                                }
-                            },
-                            new TagHelperDescriptor
-                            {
-                                TagName = "p",
-                                TypeName = typeof(MulitpleDescriptorTagHelperWithOutputElementHint).FullName,
-                                AssemblyName = AssemblyName,
-                                DesignTimeDescriptor = new TagHelperDesignTimeDescriptor
-                                {
-                                    OutputElementHint = "div"
-                                }
-                            }
-                        }
-                    },
-                    {
-                        typeof(InheritedOutputElementHintTagHelper),
-                        new[]
-                        {
-                            new TagHelperDescriptor
-                            {
-                                TagName = "inherited-output-element-hint",
-                                TypeName = typeof(InheritedOutputElementHintTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                DesignTimeDescriptor = null
-                            }
-                        }
-                    },
-                    {
-                        typeof(OutputElementHintTagHelper),
-                        new[]
-                        {
-                            new TagHelperDescriptor
-                            {
-                                TagName = "output-element-hint",
-                                TypeName = typeof(OutputElementHintTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                DesignTimeDescriptor = new TagHelperDesignTimeDescriptor
-                                {
-                                    OutputElementHint = "hinted-value"
-                                }
-                            }
-                        }
-                    },
-                    {
-                        typeof(OverriddenOutputElementHintTagHelper),
-                        new[]
-                        {
-                            new TagHelperDescriptor
-                            {
-                                TagName = "overridden-output-element-hint",
-                                TypeName = typeof(OverriddenOutputElementHintTagHelper).FullName,
-                                AssemblyName = AssemblyName,
-                                DesignTimeDescriptor = new TagHelperDesignTimeDescriptor
-                                {
-                                    OutputElementHint = "overridden"
-                                }
-                            }
-                        }
-                    },
-                };
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(OutputElementHintData))]
-        public void CreateDescriptors_CreatesDesignTimeDescriptorsWithOutputElementHint(
-            Type tagHelperType,
-            TagHelperDescriptor[] expectedDescriptors)
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: true);
-            var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperType.FullName);
-
-            // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
-
-            // Assert
-            Assert.Empty(errorSink.Errors);
-
-            // We don't care about order. Mono returns reflected attributes differently so we need to ensure order
-            // doesn't matter by sorting.
-            descriptors = descriptors.OrderBy(descriptor => descriptor.TagName);
-
-            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
-        }
-
-        [Fact]
-        public void CreateDescriptors_CapturesRemarksAndSummaryOnTagHelperClass()
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var sytnaxTree = CSharpSyntaxTree.ParseText(@"
-using Microsoft.AspNetCore.Razor.TagHelpers;
-
-/// <summary>
-/// The summary for <see cref=""DocumentedTagHelper""/>.
-/// </summary>
-/// <remarks>
-/// Inherits from <see cref=""TagHelper""/>.
-/// </remarks>
-[" + typeof(AspNetCore.Razor.TagHelpers.OutputElementHintAttribute).FullName + @"(""p"")]
-public class DocumentedTagHelper : " + typeof(AspNetCore.Razor.TagHelpers.TagHelper).Name + @"
-{
-}");
-            var compilation = TestCompilation.Create(sytnaxTree);
-            var factory = new DefaultTagHelperDescriptorFactory(compilation, designTime: true);
-            var typeSymbol = compilation.GetTypeByMetadataName("DocumentedTagHelper");
-            var expectedDescriptor = new TagHelperDesignTimeDescriptor()
-            {
-                OutputElementHint = "p",
-                Summary = "The summary for <see cref=\"T:DocumentedTagHelper\" />.",
-                Remarks = "Inherits from <see cref=\"T:Microsoft.AspNetCore.Razor.TagHelpers.TagHelper\" />.",
-            };
-
-            // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
-
-            // Assert
-            Assert.Empty(errorSink.Errors);
-            var descriptor = Assert.Single(descriptors);
-            Assert.Equal(expectedDescriptor, descriptor.DesignTimeDescriptor, TagHelperDesignTimeDescriptorComparer.Default);
-        }
-
-        [Fact]
-        public void CreateDescriptors_CapturesRemarksAndSummaryOnTagHelperProperties()
-        {
-            // Arrange
-            var errorSink = new ErrorSink();
-            var sytnaxTree = CSharpSyntaxTree.ParseText(@"
-using System.Collections.Generic;
-
-public class DocumentedTagHelper : " + typeof(AspNetCore.Razor.TagHelpers.TagHelper).FullName + @"
-{
-    /// <summary>
-    /// This <see cref=""SummaryProperty""/> is of type <see cref=""string""/>.
-    /// </summary>
-    public string SummaryProperty { get; set; }
-
-    /// <remarks>
-    /// The <see cref=""SummaryProperty""/> may be <c>null</c>.
-    /// </remarks>
-    public int RemarksProperty { get; set; }
-
-    /// <summary>
-    /// This is a complex <see cref=""List{bool}""/>.
-    /// </summary>
-    /// <remarks>
-    /// <see cref=""SummaryProperty""/><see cref=""RemarksProperty""/>
-    /// </remarks>
-    public List<bool> RemarksAndSummaryProperty { get; set; }
-}");
-            var compilation = TestCompilation.Create(sytnaxTree);
-            var factory = new DefaultTagHelperDescriptorFactory(compilation, designTime: true);
-            var typeSymbol = compilation.GetTypeByMetadataName("DocumentedTagHelper");
-            var expectedDescriptors = new[]
-            {
-                new TagHelperAttributeDesignTimeDescriptor()
-                {
-                    Summary = "This <see cref=\"P:DocumentedTagHelper.SummaryProperty\" /> is of type <see cref=\"T:System.String\" />.",
-                },
-                new TagHelperAttributeDesignTimeDescriptor()
-                {
-                    Remarks = "The <see cref=\"P:DocumentedTagHelper.SummaryProperty\" /> may be <c>null</c>.",
-                },
-                new TagHelperAttributeDesignTimeDescriptor()
-                {
-                    Summary = "This is a complex <see cref=\"T:System.Collections.Generic.List`1\" />.",
-                    Remarks = "<see cref=\"P:DocumentedTagHelper.SummaryProperty\" /><see cref=\"P:DocumentedTagHelper.RemarksProperty\" />",
-                }
-            };
-
-            // Act
-            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
-
-            // Assert
-            Assert.Empty(errorSink.Errors);
-            var attributeDescriptors = descriptors
-                .SelectMany(descriptor => descriptor.BoundAttributes)
-                .Select(descriptor => descriptor.DesignTimeDescriptor);
-            Assert.Equal(expectedDescriptors, attributeDescriptors, TagHelperAttributeDesignTimeDescriptorComparer.Default);
-        }
-
-        private static TheoryData<string, string[]> GetInvalidNameOrPrefixData(
-            Func<string, string, string> onNameError,
-            string whitespaceErrorString,
-            Func<string, string> onDataError)
-        {
-            // name, expectedErrorMessages
-            var data = new TheoryData<string, string[]>
-            {
-                { "!", new[] {  onNameError("!", "!") } },
-                { "hello!", new[] { onNameError("hello!", "!") } },
-                { "!hello", new[] { onNameError("!hello", "!") } },
-                { "he!lo", new[] { onNameError("he!lo", "!") } },
-                {
-                    "!he!lo!",
-                    new[]
-                    {
-                        onNameError("!he!lo!", "!"),
-                        onNameError("!he!lo!", "!"),
-                        onNameError("!he!lo!", "!"),
-                    }
-                },
-                { "@", new[] { onNameError("@", "@") } },
-                { "hello@", new[] { onNameError("hello@", "@") } },
-                { "@hello", new[] { onNameError("@hello", "@") } },
-                { "he@lo", new[] { onNameError("he@lo", "@") } },
-                {
-                    "@he@lo@",
-                    new[]
-                    {
-                        onNameError("@he@lo@", "@"),
-                        onNameError("@he@lo@", "@"),
-                        onNameError("@he@lo@", "@"),
-                    }
-                },
-                { "/", new[] { onNameError("/", "/") } },
-                { "hello/", new[] { onNameError("hello/", "/") } },
-                { "/hello", new[] { onNameError("/hello", "/") } },
-                { "he/lo", new[] { onNameError("he/lo", "/") } },
-                {
-                    "/he/lo/",
-                    new[]
-                    {
-                        onNameError("/he/lo/", "/"),
-                        onNameError("/he/lo/", "/"),
-                        onNameError("/he/lo/", "/"),
-                    }
-                },
-                { "<", new[] { onNameError("<", "<") } },
-                { "hello<", new[] { onNameError("hello<", "<") } },
-                { "<hello", new[] { onNameError("<hello", "<") } },
-                { "he<lo", new[] { onNameError("he<lo", "<") } },
-                {
-                    "<he<lo<",
-                    new[]
-                    {
-                        onNameError("<he<lo<", "<"),
-                        onNameError("<he<lo<", "<"),
-                        onNameError("<he<lo<", "<"),
-                    }
-                },
-                { "?", new[] { onNameError("?", "?") } },
-                { "hello?", new[] { onNameError("hello?", "?") } },
-                { "?hello", new[] { onNameError("?hello", "?") } },
-                { "he?lo", new[] { onNameError("he?lo", "?") } },
-                {
-                    "?he?lo?",
-                    new[]
-                    {
-                        onNameError("?he?lo?", "?"),
-                        onNameError("?he?lo?", "?"),
-                        onNameError("?he?lo?", "?"),
-                    }
-                },
-                { "[", new[] { onNameError("[", "[") } },
-                { "hello[", new[] { onNameError("hello[", "[") } },
-                { "[hello", new[] { onNameError("[hello", "[") } },
-                { "he[lo", new[] { onNameError("he[lo", "[") } },
-                {
-                    "[he[lo[",
-                    new[]
-                    {
-                        onNameError("[he[lo[", "["),
-                        onNameError("[he[lo[", "["),
-                        onNameError("[he[lo[", "["),
-                    }
-                },
-                { ">", new[] { onNameError(">", ">") } },
-                { "hello>", new[] { onNameError("hello>", ">") } },
-                { ">hello", new[] { onNameError(">hello", ">") } },
-                { "he>lo", new[] { onNameError("he>lo", ">") } },
-                {
-                    ">he>lo>",
-                    new[]
-                    {
-                        onNameError(">he>lo>", ">"),
-                        onNameError(">he>lo>", ">"),
-                        onNameError(">he>lo>", ">"),
-                    }
-                },
-                { "]", new[] { onNameError("]", "]") } },
-                { "hello]", new[] { onNameError("hello]", "]") } },
-                { "]hello", new[] { onNameError("]hello", "]") } },
-                { "he]lo", new[] { onNameError("he]lo", "]") } },
-                {
-                    "]he]lo]",
-                    new[]
-                    {
-                        onNameError("]he]lo]", "]"),
-                        onNameError("]he]lo]", "]"),
-                        onNameError("]he]lo]", "]"),
-                    }
-                },
-                { "=", new[] { onNameError("=", "=") } },
-                { "hello=", new[] { onNameError("hello=", "=") } },
-                { "=hello", new[] { onNameError("=hello", "=") } },
-                { "he=lo", new[] { onNameError("he=lo", "=") } },
-                {
-                    "=he=lo=",
-                    new[]
-                    {
-                        onNameError("=he=lo=", "="),
-                        onNameError("=he=lo=", "="),
-                        onNameError("=he=lo=", "="),
-                    }
-                },
-                { "\"", new[] { onNameError("\"", "\"") } },
-                { "hello\"", new[] { onNameError("hello\"", "\"") } },
-                { "\"hello", new[] { onNameError("\"hello", "\"") } },
-                { "he\"lo", new[] { onNameError("he\"lo", "\"") } },
-                {
-                    "\"he\"lo\"",
-                    new[]
-                    {
-                        onNameError("\"he\"lo\"", "\""),
-                        onNameError("\"he\"lo\"", "\""),
-                        onNameError("\"he\"lo\"", "\""),
-                    }
-                },
-                { "'", new[] { onNameError("'", "'") } },
-                { "hello'", new[] { onNameError("hello'", "'") } },
-                { "'hello", new[] { onNameError("'hello", "'") } },
-                { "he'lo", new[] { onNameError("he'lo", "'") } },
-                {
-                    "'he'lo'",
-                    new[]
-                    {
-                        onNameError("'he'lo'", "'"),
-                        onNameError("'he'lo'", "'"),
-                        onNameError("'he'lo'", "'"),
-                    }
-                },
-                { "hello*", new[] { onNameError("hello*", "*") } },
-                { "*hello", new[] { onNameError("*hello", "*") } },
-                { "he*lo", new[] { onNameError("he*lo", "*") } },
-                {
-                    "*he*lo*",
-                    new[]
-                    {
-                        onNameError("*he*lo*", "*"),
-                        onNameError("*he*lo*", "*"),
-                        onNameError("*he*lo*", "*"),
-                    }
-                },
-                { Environment.NewLine, new[] { whitespaceErrorString } },
-                { "\t", new[] { whitespaceErrorString } },
-                { " \t ", new[] { whitespaceErrorString } },
-                { " ", new[] { whitespaceErrorString } },
-                { Environment.NewLine + " ", new[] { whitespaceErrorString } },
-                {
-                    "! \t\r\n@/<>?[]=\"'*",
-                    new[]
-                    {
-                        onNameError("! \t\r\n@/<>?[]=\"'*", "!"),
-                        onNameError("! \t\r\n@/<>?[]=\"'*", " "),
-                        onNameError("! \t\r\n@/<>?[]=\"'*", "\t"),
-                        onNameError("! \t\r\n@/<>?[]=\"'*", "\r"),
-                        onNameError("! \t\r\n@/<>?[]=\"'*", "\n"),
-                        onNameError("! \t\r\n@/<>?[]=\"'*", "@"),
-                        onNameError("! \t\r\n@/<>?[]=\"'*", "/"),
-                        onNameError("! \t\r\n@/<>?[]=\"'*", "<"),
-                        onNameError("! \t\r\n@/<>?[]=\"'*", ">"),
-                        onNameError("! \t\r\n@/<>?[]=\"'*", "?"),
-                        onNameError("! \t\r\n@/<>?[]=\"'*", "["),
-                        onNameError("! \t\r\n@/<>?[]=\"'*", "]"),
-                        onNameError("! \t\r\n@/<>?[]=\"'*", "="),
-                        onNameError("! \t\r\n@/<>?[]=\"'*", "\""),
-                        onNameError("! \t\r\n@/<>?[]=\"'*", "'"),
-                        onNameError("! \t\r\n@/<>?[]=\"'*", "*"),
-                    }
-                },
-                {
-                    "! \tv\ra\nl@i/d<>?[]=\"'*",
-                    new[]
-                    {
-                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "!"),
-                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", " "),
-                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "\t"),
-                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "\r"),
-                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "\n"),
-                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "@"),
-                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "/"),
-                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "<"),
-                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", ">"),
-                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "?"),
-                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "["),
-                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "]"),
-                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "="),
-                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "\""),
-                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "'"),
-                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "*"),
-                    }
-                },
-            };
-
-            if (onDataError != null)
-            {
-                data.Add("data-", new[] { onDataError("data-") });
-                data.Add("data-something", new[] { onDataError("data-something") });
-                data.Add("Data-Something", new[] { onDataError("Data-Something") });
-                data.Add("DATA-SOMETHING", new[] { onDataError("DATA-SOMETHING") });
-            }
-
-            return data;
-        }
+        //        [Fact]
+        //        public void CreateDescriptor_AllowsOverridenAttributeNameOnUnimplementedVirtual()
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var validProperty1 = typeof(InheritedNotOverriddenAttributeTagHelper).GetProperty(
+        //                nameof(InheritedNotOverriddenAttributeTagHelper.ValidAttribute1));
+        //            var validProperty2 = typeof(InheritedNotOverriddenAttributeTagHelper).GetProperty(
+        //                nameof(InheritedNotOverriddenAttributeTagHelper.ValidAttribute2));
+        //            var expectedDescriptors = new[]
+        //            {
+        //                CreateTagHelperDescriptor(
+        //                    "inherited-not-overridden-attribute",
+        //                    typeof(InheritedNotOverriddenAttributeTagHelper).FullName,
+        //                    AssemblyName,
+        //                    new[]
+        //                    {
+        //                        CreateTagHelperAttributeDescriptor("SomethingElse", validProperty1),
+        //                        CreateTagHelperAttributeDescriptor("Something-Else", validProperty2)
+        //                    })
+        //            };
+        //            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(InheritedNotOverriddenAttributeTagHelper).FullName);
+
+        //            // Act
+        //            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+        //            // Assert
+        //            Assert.Empty(errorSink.Errors);
+        //            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
+        //        }
+
+        //        [Fact]
+        //        public void CreateDescriptor_BuildsDescriptorsWithInheritedProperties()
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var expectedDescriptor = CreateTagHelperDescriptor(
+        //                "inherited-single-attribute",
+        //                typeof(InheritedSingleAttributeTagHelper).FullName,
+        //                AssemblyName,
+        //                new[]
+        //                {
+        //                    new BoundAttributeDescriptor
+        //                    {
+        //                        Name = "int-attribute",
+        //                        PropertyName = nameof(InheritedSingleAttributeTagHelper.IntAttribute),
+        //                        TypeName = typeof(int).FullName
+        //                    }
+        //                });
+        //            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(InheritedSingleAttributeTagHelper).FullName);
+
+        //            // Act
+        //            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+
+        //            // Assert
+        //            Assert.Empty(errorSink.Errors);
+        //            var descriptor = Assert.Single(descriptors);
+        //            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
+        //        }
+
+        //        [Fact]
+        //        public void CreateDescriptor_BuildsDescriptorsWithConventionNames()
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var intProperty = typeof(SingleAttributeTagHelper).GetProperty(nameof(SingleAttributeTagHelper.IntAttribute));
+        //            var expectedDescriptor = CreateTagHelperDescriptor(
+        //                "single-attribute",
+        //                typeof(SingleAttributeTagHelper).FullName,
+        //                AssemblyName,
+        //                new[]
+        //                {
+        //                    CreateTagHelperAttributeDescriptor("int-attribute", intProperty)
+        //                });
+        //            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(SingleAttributeTagHelper).FullName);
+
+        //            // Act
+        //            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+
+        //            // Assert
+        //            Assert.Empty(errorSink.Errors);
+        //            var descriptor = Assert.Single(descriptors);
+        //            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
+        //        }
+
+        //        [Fact]
+        //        public void CreateDescriptor_OnlyAcceptsPropertiesWithGetAndSet()
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var validProperty = typeof(MissingAccessorTagHelper).GetProperty(
+        //                nameof(MissingAccessorTagHelper.ValidAttribute));
+        //            var expectedDescriptor = CreateTagHelperDescriptor(
+        //                "missing-accessor",
+        //                typeof(MissingAccessorTagHelper).FullName,
+        //                AssemblyName,
+        //                new[]
+        //                {
+        //                    CreateTagHelperAttributeDescriptor("valid-attribute", validProperty)
+        //                });
+        //            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(MissingAccessorTagHelper).FullName);
+
+        //            // Act
+        //            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+
+        //            // Assert
+        //            Assert.Empty(errorSink.Errors);
+        //            var descriptor = Assert.Single(descriptors);
+        //            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
+        //        }
+
+        //        [Fact]
+        //        public void CreateDescriptor_OnlyAcceptsPropertiesWithPublicGetAndSet()
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var validProperty = typeof(NonPublicAccessorTagHelper).GetProperty(
+        //                nameof(NonPublicAccessorTagHelper.ValidAttribute));
+        //            var expectedDescriptor = CreateTagHelperDescriptor(
+        //                "non-public-accessor",
+        //                typeof(NonPublicAccessorTagHelper).FullName,
+        //                AssemblyName,
+        //                new[]
+        //                {
+        //                    CreateTagHelperAttributeDescriptor("valid-attribute", validProperty)
+        //                });
+        //            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(NonPublicAccessorTagHelper).FullName);
+
+        //            // Act
+        //            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+
+        //            // Assert
+        //            Assert.Empty(errorSink.Errors);
+        //            var descriptor = Assert.Single(descriptors);
+        //            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
+        //        }
+
+        //        [Fact]
+        //        public void CreateDescriptor_DoesNotIncludePropertiesWithNotBound()
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var expectedDescriptor = CreateTagHelperDescriptor(
+        //                "not-bound-attribute",
+        //                typeof(NotBoundAttributeTagHelper).FullName,
+        //                AssemblyName,
+        //                new[]
+        //                {
+        //                    new BoundAttributeDescriptor
+        //                    {
+        //                        Name = "bound-property",
+        //                        PropertyName = nameof(NotBoundAttributeTagHelper.BoundProperty),
+        //                        TypeName = typeof(object).FullName
+        //                    }
+        //                });
+        //            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(NotBoundAttributeTagHelper).FullName);
+
+        //            // Act
+        //            var descriptors = factory.CreateDescriptor(typeSymbol,
+        //                errorSink: errorSink);
+
+        //            // Assert
+        //            Assert.Empty(errorSink.Errors);
+        //            var descriptor = Assert.Single(descriptors);
+        //            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
+        //        }
+
+        //        [Fact(Skip = "#364")]
+        //        public void CreateDescriptor_AddsErrorForTagHelperWithDuplicateAttributeNames()
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(DuplicateAttributeNameTagHelper).FullName);
+
+        //            // Act
+        //            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+
+        //            // Assert
+        //            Assert.Empty(descriptors);
+        //            var error = Assert.Single(errorSink.Errors);
+        //        }
+
+        //        [Fact]
+        //        public void CreateDescriptor_ResolvesMultipleTagHelperDescriptorsFromSingleType()
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var expectedDescriptors = new[]
+        //            {
+        //                CreateTagHelperDescriptor(
+        //                    "div",
+        //                    typeof(MultiTagTagHelper).FullName,
+        //                    AssemblyName,
+        //                    new[]
+        //                    {
+        //                        new BoundAttributeDescriptor
+        //                        {
+        //                            Name = "valid-attribute",
+        //                            PropertyName = nameof(MultiTagTagHelper.ValidAttribute),
+        //                            TypeName = typeof(string).FullName,
+        //                            IsStringProperty = true
+        //                        }
+        //                    }),
+        //                CreateTagHelperDescriptor(
+        //                    "p",
+        //                    typeof(MultiTagTagHelper).FullName,
+        //                    AssemblyName,
+        //                    new[]
+        //                    {
+        //                        new BoundAttributeDescriptor
+        //                        {
+        //                            Name = "valid-attribute",
+        //                            PropertyName = nameof(MultiTagTagHelper.ValidAttribute),
+        //                            TypeName = typeof(string).FullName,
+        //                            IsStringProperty = true
+        //                        }
+        //                    })
+        //            };
+        //            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(MultiTagTagHelper).FullName);
+
+        //            // Act
+        //            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+
+        //            // Assert
+        //            Assert.Empty(errorSink.Errors);
+
+        //            // We don't care about order. Mono returns reflected attributes differently so we need to ensure order
+        //            // doesn't matter by sorting.
+        //            descriptors = descriptors.OrderBy(descriptor => descriptor.TagName).ToArray();
+
+        //            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
+        //        }
+
+        //        [Fact]
+        //        public void CreateDescriptor_DoesNotResolveInheritedTagNames()
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var validProp = typeof(InheritedMultiTagTagHelper).GetProperty(nameof(InheritedMultiTagTagHelper.ValidAttribute));
+        //            var expectedDescriptor = CreateTagHelperDescriptor(
+        //                    "inherited-multi-tag",
+        //                    typeof(InheritedMultiTagTagHelper).FullName,
+        //                    AssemblyName,
+        //                    new[]
+        //                    {
+        //                        CreateTagHelperAttributeDescriptor("valid-attribute", validProp)
+        //                    });
+        //            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(InheritedMultiTagTagHelper).FullName);
+
+        //            // Act
+        //            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+
+        //            // Assert
+        //            Assert.Empty(errorSink.Errors);
+        //            var descriptor = Assert.Single(descriptors);
+        //            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
+        //        }
+
+        //        [Fact]
+        //        public void CreateDescriptor_IgnoresDuplicateTagNamesFromAttribute()
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var expectedDescriptors = new[]
+        //            {
+        //                CreateTagHelperDescriptor(
+        //                    "div",
+        //                    typeof(DuplicateTagNameTagHelper).FullName,
+        //                    AssemblyName),
+        //                CreateTagHelperDescriptor(
+        //                    "p",
+        //                    typeof(DuplicateTagNameTagHelper).FullName,
+        //                    AssemblyName)
+        //            };
+        //            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(DuplicateTagNameTagHelper).FullName);
+
+        //            // Act
+        //            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+
+        //            // Assert
+        //            Assert.Empty(errorSink.Errors);
+
+        //            // We don't care about order. Mono returns reflected attributes differently so we need to ensure order
+        //            // doesn't matter by sorting.
+        //            descriptors = descriptors.OrderBy(descriptor => descriptor.TagName).ToArray();
+
+        //            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
+        //        }
+
+        //        [Fact]
+        //        public void CreateDescriptor_OverridesTagNameFromAttribute()
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var expectedDescriptors = new[]
+        //            {
+        //                CreateTagHelperDescriptor(
+        //                    "data-condition",
+        //                    typeof(OverrideNameTagHelper).FullName,
+        //                    AssemblyName),
+        //            };
+        //            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(OverrideNameTagHelper).FullName);
+
+        //            // Act
+        //            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+
+        //            // Assert
+        //            Assert.Empty(errorSink.Errors);
+        //            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
+        //        }
+
+        //        // name, expectedErrorMessages
+        //        public static TheoryData<string, string[]> InvalidNameData
+        //        {
+        //            get
+        //            {
+        //                Func<string, string, string> onNameError =
+        //                    (invalidText, invalidCharacter) => $"Tag helpers cannot target tag name '{ invalidText }' " +
+        //                        $"because it contains a '{ invalidCharacter }' character.";
+        //                var whitespaceErrorString = "Tag name cannot be null or whitespace.";
+
+        //                var data = GetInvalidNameOrPrefixData(onNameError, whitespaceErrorString, onDataError: null);
+        //                data.Add(string.Empty, new[] { whitespaceErrorString });
+
+        //                return data;
+        //            }
+        //        }
+
+        //        [Theory]
+        //        [MemberData(nameof(InvalidNameData))]
+        //        public void ValidHtmlTargetElementAttributeNames_CreatesErrorOnInvalidNames(
+        //            string name, string[] expectedErrorMessages)
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            name = name.Replace("\n", "\\n").Replace("\r", "\\r").Replace("\"", "\\\"");
+        //            var text = $@"
+        //[{typeof(AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute).FullName}(""{name}"")]
+        //public class DynamicTestTagHelper : {typeof(AspNetCore.Razor.TagHelpers.TagHelper).FullName}
+        //{{
+        //}}";
+        //            var syntaxTree = CSharpSyntaxTree.ParseText(text);
+        //            var compilation = TestCompilation.Create(syntaxTree);
+        //            var tagHelperType = compilation.GetTypeByMetadataName("DynamicTestTagHelper");
+        //            var attribute = tagHelperType.GetAttributes().Single();
+
+        //            // Act
+        //            DefaultTagHelperDescriptorFactory.ValidHtmlTargetElementAttributeNames(attribute, errorSink);
+
+        //            // Assert
+        //            var errors = errorSink.Errors.ToArray();
+        //            Assert.Equal(expectedErrorMessages.Length, errors.Length);
+        //            for (var i = 0; i < expectedErrorMessages.Length; i++)
+        //            {
+        //                Assert.Equal(0, errors[i].Length);
+        //                Assert.Equal(SourceLocation.Zero, errors[i].Location);
+        //                Assert.Equal(expectedErrorMessages[i], errors[i].Message, StringComparer.Ordinal);
+        //            }
+        //        }
+
+        //        public static TheoryData ValidNameData
+        //        {
+        //            get
+        //            {
+        //                // name, expectedNames
+        //                return new TheoryData<string, IEnumerable<string>>
+        //                {
+        //                    { "p", new[] { "p" } },
+        //                    { " p", new[] { "p" } },
+        //                    { "p ", new[] { "p" } },
+        //                    { " p ", new[] { "p" } },
+        //                    { "p,div", new[] { "p", "div" } },
+        //                    { " p,div", new[] { "p", "div" } },
+        //                    { "p ,div", new[] { "p", "div" } },
+        //                    { " p ,div", new[] { "p", "div" } },
+        //                    { "p, div", new[] { "p", "div" } },
+        //                    { "p,div ", new[] { "p", "div" } },
+        //                    { "p, div ", new[] { "p", "div" } },
+        //                    { " p, div ", new[] { "p", "div" } },
+        //                    { " p , div ", new[] { "p", "div" } },
+        //                };
+        //            }
+        //        }
+
+        //        public static TheoryData InvalidTagHelperAttributeDescriptorData
+        //        {
+        //            get
+        //            {
+        //                var errorFormat = "Invalid tag helper bound property '{0}.{1}'. Tag helpers cannot bind to HTML " +
+        //                    "attributes with name '{2}' because name starts with 'data-'.";
+
+        //                // type, expectedAttributeDescriptors, expectedErrors
+        //                return new TheoryData<Type, IEnumerable<BoundAttributeDescriptor>, string[]>
+        //                {
+        //                    {
+        //                        typeof(InvalidBoundAttribute),
+        //                        Enumerable.Empty<BoundAttributeDescriptor>(),
+        //                        new[]
+        //                        {
+        //                            string.Format(
+        //                                errorFormat,
+        //                                typeof(InvalidBoundAttribute).FullName,
+        //                                nameof(InvalidBoundAttribute.DataSomething),
+        //                                "data-something")
+        //                        }
+        //                    },
+        //                    {
+        //                        typeof(InvalidBoundAttributeWithValid),
+        //                        new[]
+        //                        {
+        //                            CreateTagHelperAttributeDescriptor(
+        //                                "int-attribute",
+        //                                typeof(InvalidBoundAttributeWithValid)
+        //                                    .GetProperty(nameof(InvalidBoundAttributeWithValid.IntAttribute)))
+        //                        },
+        //                        new[]
+        //                        {
+        //                            string.Format(
+        //                                errorFormat,
+        //                                typeof(InvalidBoundAttributeWithValid).FullName,
+        //                                nameof(InvalidBoundAttributeWithValid.DataSomething),
+        //                                "data-something")
+        //                        }
+        //                    },
+        //                    {
+        //                        typeof(OverriddenInvalidBoundAttributeWithValid),
+        //                        new[]
+        //                        {
+        //                            CreateTagHelperAttributeDescriptor(
+        //                                "valid-something",
+        //                                typeof(OverriddenInvalidBoundAttributeWithValid)
+        //                                    .GetProperty(nameof(OverriddenInvalidBoundAttributeWithValid.DataSomething)))
+        //                        },
+        //                        new string[0]
+        //                    },
+        //                    {
+        //                        typeof(OverriddenValidBoundAttributeWithInvalid),
+        //                        Enumerable.Empty<BoundAttributeDescriptor>(),
+        //                        new[]
+        //                        {
+        //                            string.Format(
+        //                                errorFormat,
+        //                                typeof(OverriddenValidBoundAttributeWithInvalid).FullName,
+        //                                nameof(OverriddenValidBoundAttributeWithInvalid.ValidSomething),
+        //                                "data-something")
+        //                        }
+        //                    },
+        //                    {
+        //                        typeof(OverriddenValidBoundAttributeWithInvalidUpperCase),
+        //                        Enumerable.Empty<BoundAttributeDescriptor>(),
+        //                        new[]
+        //                        {
+        //                            string.Format(
+        //                                errorFormat,
+        //                                typeof(OverriddenValidBoundAttributeWithInvalidUpperCase).FullName,
+        //                                nameof(OverriddenValidBoundAttributeWithInvalidUpperCase.ValidSomething),
+        //                                "DATA-SOMETHING")
+        //                        }
+        //                    },
+        //                };
+        //            }
+        //        }
+
+        //        [Theory]
+        //        [MemberData(nameof(InvalidTagHelperAttributeDescriptorData))]
+        //        public void CreateDescriptor_DoesNotAllowDataDashAttributes(
+        //            Type type,
+        //            IEnumerable<BoundAttributeDescriptor> expectedAttributeDescriptors,
+        //            string[] expectedErrors)
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(type.FullName);
+
+        //            // Act
+        //            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+
+        //            // Assert
+        //            var actualErrors = errorSink.Errors.ToArray();
+        //            Assert.Equal(expectedErrors.Length, actualErrors.Length);
+
+        //            for (var i = 0; i < actualErrors.Length; i++)
+        //            {
+        //                var actualError = actualErrors[i];
+        //                Assert.Equal(0, actualError.Length);
+        //                Assert.Equal(SourceLocation.Zero, actualError.Location);
+        //                Assert.Equal(expectedErrors[i], actualError.Message, StringComparer.Ordinal);
+        //            }
+
+        //            var actualDescriptor = Assert.Single(descriptors);
+        //            Assert.Equal(
+        //                expectedAttributeDescriptors,
+        //                actualDescriptor.BoundAttributes,
+        //                TagHelperAttributeDescriptorComparer.Default);
+        //        }
+
+        //        // tagTelperType, expectedAttributeDescriptors, expectedErrorMessages
+        //        public static TheoryData<Type, IEnumerable<BoundAttributeDescriptor>, string[]> TagHelperWithPrefixData
+        //        {
+        //            get
+        //            {
+        //                Func<string, string, string> onError = (typeName, propertyName) =>
+        //                    $"Invalid tag helper bound property '{ typeName }.{ propertyName }'. " +
+        //                    $"'{ typeof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute).FullName }." +
+        //                    $"{ nameof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute.DictionaryAttributePrefix) }' must be null unless " +
+        //                    "property type implements 'IDictionary<string, TValue>'.";
+        //                var dictionaryNamespace = typeof(IDictionary<,>).FullName;
+        //                dictionaryNamespace = dictionaryNamespace.Substring(0, dictionaryNamespace.IndexOf('`'));
+
+        //                // tagTelperType, expectedAttributeDescriptors, expectedErrorMessages
+        //                return new TheoryData<Type, IEnumerable<BoundAttributeDescriptor>, string[]>
+        //                {
+        //                    {
+        //                        typeof(DefaultValidHtmlAttributePrefix),
+        //                        new[]
+        //                        {
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "dictionary-property",
+        //                                PropertyName = nameof(DefaultValidHtmlAttributePrefix.DictionaryProperty),
+        //                                TypeName = $"{dictionaryNamespace}<System.String, System.String>"
+        //                            },
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "dictionary-property-",
+        //                                PropertyName = nameof(DefaultValidHtmlAttributePrefix.DictionaryProperty),
+        //                                TypeName = typeof(string).FullName,
+        //                                IsIndexer = true
+        //                            }
+        //                        },
+        //                        new string[0]
+        //                    },
+        //                    {
+        //                        typeof(SingleValidHtmlAttributePrefix),
+        //                        new[]
+        //                        {
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "valid-name",
+        //                                PropertyName = nameof(SingleValidHtmlAttributePrefix.DictionaryProperty),
+        //                                TypeName = $"{dictionaryNamespace}<System.String, System.String>"
+        //                            },
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "valid-name-",
+        //                                PropertyName = nameof(SingleValidHtmlAttributePrefix.DictionaryProperty),
+        //                                TypeName = typeof(string).FullName,
+        //                                IsIndexer = true
+        //                            }
+        //                        },
+        //                        new string[0]
+        //                    },
+        //                    {
+        //                        typeof(MultipleValidHtmlAttributePrefix),
+        //                        new[]
+        //                        {
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "valid-name1",
+        //                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.DictionaryProperty),
+        //                                TypeName = $"{typeof(Dictionary<,>).Namespace}.Dictionary<System.String, System.Object>"
+        //                            },
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "valid-name2",
+        //                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.DictionarySubclassProperty),
+        //                                TypeName = typeof(DictionarySubclass).FullName
+        //                            },
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "valid-name3",
+        //                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.DictionaryWithoutParameterlessConstructorProperty),
+        //                                TypeName = typeof(DictionaryWithoutParameterlessConstructor).FullName
+        //                            },
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "valid-name4",
+        //                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.GenericDictionarySubclassProperty),
+        //                                TypeName = typeof(GenericDictionarySubclass<object>).Namespace + ".GenericDictionarySubclass<System.Object>"
+        //                            },
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "valid-name5",
+        //                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.SortedDictionaryProperty),
+        //                                TypeName = typeof(SortedDictionary<string, int>).Namespace + ".SortedDictionary<System.String, System.Int32>"
+        //                            },
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "valid-name6",
+        //                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.StringProperty),
+        //                                TypeName = typeof(string).FullName,
+        //                                IsStringProperty = true,
+        //                            },
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "valid-prefix1-",
+        //                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.DictionaryProperty),
+        //                                TypeName = typeof(object).FullName,
+        //                                IsIndexer = true
+        //                            },
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "valid-prefix2-",
+        //                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.DictionarySubclassProperty),
+        //                                TypeName = typeof(string).FullName,
+        //                                IsIndexer = true
+        //                            },
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "valid-prefix3-",
+        //                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.DictionaryWithoutParameterlessConstructorProperty),
+        //                                TypeName = typeof(string).FullName,
+        //                                IsIndexer = true
+        //                            },
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "valid-prefix4-",
+        //                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.GenericDictionarySubclassProperty),
+        //                                TypeName = typeof(object).FullName,
+        //                                IsIndexer = true
+        //                            },
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "valid-prefix5-",
+        //                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.SortedDictionaryProperty),
+        //                                TypeName = typeof(int).FullName,
+        //                                IsIndexer = true
+        //                            },
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "get-only-dictionary-property-",
+        //                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.GetOnlyDictionaryProperty),
+        //                                TypeName = typeof(int).FullName,
+        //                                IsIndexer = true
+        //                            },
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "valid-prefix6",
+        //                                PropertyName = nameof(MultipleValidHtmlAttributePrefix.GetOnlyDictionaryPropertyWithAttributePrefix),
+        //                                TypeName = typeof(string).FullName,
+        //                                IsIndexer = true
+        //                            }
+        //                        },
+        //                        new string[0]
+        //                    },
+        //                    {
+        //                        typeof(SingleInvalidHtmlAttributePrefix),
+        //                        Enumerable.Empty<BoundAttributeDescriptor>(),
+        //                        new[]
+        //                        {
+        //                            onError(
+        //                                typeof(SingleInvalidHtmlAttributePrefix).FullName,
+        //                                nameof(SingleInvalidHtmlAttributePrefix.StringProperty)),
+        //                        }
+        //                    },
+        //                    {
+        //                        typeof(MultipleInvalidHtmlAttributePrefix),
+        //                        new[]
+        //                        {
+        //                            new BoundAttributeDescriptor
+        //                            {
+        //                                Name = "valid-name1",
+        //                                PropertyName = nameof(MultipleInvalidHtmlAttributePrefix.LongProperty),
+        //                                TypeName = typeof(long).FullName
+        //                            }
+        //                        },
+        //                        new[]
+        //                        {
+        //                            onError(
+        //                                typeof(MultipleInvalidHtmlAttributePrefix).FullName,
+        //                                nameof(MultipleInvalidHtmlAttributePrefix.DictionaryOfIntProperty)),
+        //                            onError(
+        //                                typeof(MultipleInvalidHtmlAttributePrefix).FullName,
+        //                                nameof(MultipleInvalidHtmlAttributePrefix.ReadOnlyDictionaryProperty)),
+        //                            onError(
+        //                                typeof(MultipleInvalidHtmlAttributePrefix).FullName,
+        //                                nameof(MultipleInvalidHtmlAttributePrefix.IntProperty)),
+        //                            onError(
+        //                                typeof(MultipleInvalidHtmlAttributePrefix).FullName,
+        //                                nameof(MultipleInvalidHtmlAttributePrefix.DictionaryOfIntSubclassProperty)),
+        //                            onError(
+        //                                typeof(MultipleInvalidHtmlAttributePrefix).FullName,
+        //                                nameof(MultipleInvalidHtmlAttributePrefix.GetOnlyDictionaryAttributePrefix)),
+        //                            $"Invalid tag helper bound property '{ typeof(MultipleInvalidHtmlAttributePrefix).FullName }." +
+        //                            $"{ nameof(MultipleInvalidHtmlAttributePrefix.GetOnlyDictionaryPropertyWithAttributeName) }'. " +
+        //                            $"'{ typeof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute).FullName }." +
+        //                            $"{ nameof(AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute.Name) }' must be null or empty if property has " +
+        //                            "no public setter.",
+        //                        }
+        //                    },
+        //                };
+        //            }
+        //        }
+
+        //        public static TheoryData<string> ValidAttributeNameData
+        //        {
+        //            get
+        //            {
+        //                return new TheoryData<string>
+        //                {
+        //                    "data",
+        //                    "dataa-",
+        //                    "ValidName",
+        //                    "valid-name",
+        //                    "--valid--name--",
+        //                    ",,--__..oddly.valid::;;",
+        //                };
+        //            }
+        //        }
+
+        //        [Theory]
+        //        [MemberData(nameof(ValidAttributeNameData))]
+        //        public void ValidateTagHelperAttributeDescriptor_WithValidName_ReturnsTrue(string name)
+        //        {
+        //            // Arrange
+        //            var descriptor = new BoundAttributeDescriptor
+        //            {
+        //                Name = name,
+        //                PropertyName = "ValidProperty",
+        //                TypeName = "PropertyType"
+        //            };
+        //            var errorSink = new ErrorSink();
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(MultiTagTagHelper).FullName);
+
+        //            // Act
+        //            var result = DefaultTagHelperDescriptorFactory.ValidateTagHelperAttributeDescriptor(
+        //                descriptor,
+        //                typeSymbol,
+        //                errorSink);
+
+        //            // Assert
+        //            Assert.True(result);
+        //            Assert.Empty(errorSink.Errors);
+        //        }
+
+        //        public static TheoryData<string> ValidAttributePrefixData
+        //        {
+        //            get
+        //            {
+        //                return new TheoryData<string>
+        //                {
+        //                    string.Empty,
+        //                    "data",
+        //                    "dataa-",
+        //                    "ValidName",
+        //                    "valid-name",
+        //                    "--valid--name--",
+        //                    ",,--__..oddly.valid::;;",
+        //                };
+        //            }
+        //        }
+
+        //        [Theory]
+        //        [MemberData(nameof(ValidAttributePrefixData))]
+        //        public void ValidateTagHelperAttributeDescriptor_WithValidPrefix_ReturnsTrue(string prefix)
+        //        {
+        //            // Arrange
+        //            var descriptor = new BoundAttributeDescriptor
+        //            {
+        //                Name = prefix,
+        //                PropertyName = "ValidProperty",
+        //                TypeName = "PropertyType",
+        //                IsIndexer = true
+        //            };
+        //            var errorSink = new ErrorSink();
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(MultiTagTagHelper).FullName);
+
+        //            // Act
+        //            var result = DefaultTagHelperDescriptorFactory.ValidateTagHelperAttributeDescriptor(
+        //                descriptor,
+        //                typeSymbol,
+        //                errorSink);
+
+        //            // Assert
+        //            Assert.True(result);
+        //            Assert.Empty(errorSink.Errors);
+        //        }
+
+        //        // name, expectedErrorMessages
+        //        public static TheoryData<string, string[]> InvalidAttributeNameData
+        //        {
+        //            get
+        //            {
+        //                Func<string, string, string> onNameError = (invalidText, invalidCharacter) => "Invalid tag helper " +
+        //                    $"bound property '{ typeof(MultiTagTagHelper).FullName }.InvalidProperty'. Tag helpers cannot " +
+        //                    $"bind to HTML attributes with name '{ invalidText }' because name contains a " +
+        //                    $"'{ invalidCharacter }' character.";
+        //                var whitespaceErrorString = "Invalid tag helper bound property " +
+        //                    $"'{ typeof(MultiTagTagHelper).FullName }.InvalidProperty'. Tag helpers cannot bind to HTML " +
+        //                    "attributes with a whitespace name.";
+        //                Func<string, string> onDataError = invalidText => "Invalid tag helper bound property " +
+        //                    $"'{ typeof(MultiTagTagHelper).FullName }.InvalidProperty'. Tag helpers cannot bind to HTML " +
+        //                    $"attributes with name '{ invalidText }' because name starts with 'data-'.";
+
+        //                return GetInvalidNameOrPrefixData(onNameError, whitespaceErrorString, onDataError);
+        //            }
+        //        }
+
+        //        [Theory]
+        //        [MemberData(nameof(InvalidAttributeNameData))]
+        //        public void ValidateTagHelperAttributeDescriptor_WithInvalidName_AddsExpectedErrors(
+        //            string name,
+        //            string[] expectedErrorMessages)
+        //        {
+        //            // Arrange
+        //            var descriptor = new BoundAttributeDescriptor
+        //            {
+        //                Name = name,
+        //                PropertyName = "InvalidProperty",
+        //                TypeName = "PropertyType"
+        //            };
+        //            var errorSink = new ErrorSink();
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(MultiTagTagHelper).FullName);
+
+        //            // Act
+        //            var result = DefaultTagHelperDescriptorFactory.ValidateTagHelperAttributeDescriptor(
+        //                descriptor,
+        //                typeSymbol,
+        //                errorSink);
+
+        //            // Assert
+        //            Assert.False(result);
+
+        //            var errors = errorSink.Errors.ToArray();
+        //            Assert.Equal(expectedErrorMessages.Length, errors.Length);
+        //            for (var i = 0; i < expectedErrorMessages.Length; i++)
+        //            {
+        //                Assert.Equal(0, errors[i].Length);
+        //                Assert.Equal(SourceLocation.Zero, errors[i].Location);
+        //                Assert.Equal(expectedErrorMessages[i], errors[i].Message, StringComparer.Ordinal);
+        //            }
+        //        }
+
+        //        // prefix, expectedErrorMessages
+        //        public static TheoryData<string, string[]> InvalidAttributePrefixData
+        //        {
+        //            get
+        //            {
+        //                Func<string, string, string> onPrefixError = (invalidText, invalidCharacter) => "Invalid tag helper " +
+        //                    $"bound property '{ typeof(MultiTagTagHelper).FullName }.InvalidProperty'. Tag helpers cannot " +
+        //                    $"bind to HTML attributes with prefix '{ invalidText }' because prefix contains a " +
+        //                    $"'{ invalidCharacter }' character.";
+        //                var whitespaceErrorString = "Invalid tag helper bound property " +
+        //                    $"'{ typeof(MultiTagTagHelper).FullName }.InvalidProperty'. Tag helpers cannot bind to HTML " +
+        //                    "attributes with a whitespace prefix.";
+        //                Func<string, string> onDataError = invalidText => "Invalid tag helper bound property " +
+        //                    $"'{ typeof(MultiTagTagHelper).FullName }.InvalidProperty'. Tag helpers cannot bind to HTML " +
+        //                    $"attributes with prefix '{ invalidText }' because prefix starts with 'data-'.";
+
+        //                return GetInvalidNameOrPrefixData(onPrefixError, whitespaceErrorString, onDataError);
+        //            }
+        //        }
+
+        //        [Theory]
+        //        [MemberData(nameof(InvalidAttributePrefixData))]
+        //        public void ValidateTagHelperAttributeDescriptor_WithInvalidPrefix_AddsExpectedErrors(
+        //            string prefix,
+        //            string[] expectedErrorMessages)
+        //        {
+        //            // Arrange
+        //            var descriptor = new BoundAttributeDescriptor
+        //            {
+        //                Name = prefix,
+        //                PropertyName = "InvalidProperty",
+        //                TypeName = "ValuesType",
+        //                IsIndexer = true
+        //            };
+        //            var errorSink = new ErrorSink();
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(MultiTagTagHelper).FullName);
+
+        //            // Act
+        //            var result = DefaultTagHelperDescriptorFactory.ValidateTagHelperAttributeDescriptor(
+        //                descriptor,
+        //                typeSymbol,
+        //                errorSink);
+
+        //            // Assert
+        //            Assert.False(result);
+
+        //            var errors = errorSink.Errors.ToArray();
+        //            Assert.Equal(expectedErrorMessages.Length, errors.Length);
+        //            for (var i = 0; i < expectedErrorMessages.Length; i++)
+        //            {
+        //                Assert.Equal(0, errors[i].Length);
+        //                Assert.Equal(SourceLocation.Zero, errors[i].Location);
+        //                Assert.Equal(expectedErrorMessages[i], errors[i].Message, StringComparer.Ordinal);
+        //            }
+        //        }
+
+        //        public static TheoryData<string, string[]> InvalidRestrictChildrenNameData
+        //        {
+        //            get
+        //            {
+        //                var nullOrWhiteSpaceError =
+        //                    Resources.FormatTagHelperDescriptorFactory_InvalidRestrictChildrenAttributeNameNullWhitespace(
+        //                        typeof(AspNetCore.Razor.TagHelpers.RestrictChildrenAttribute).FullName,
+        //                        "SomeTagHelper");
+
+        //                return GetInvalidNameOrPrefixData(
+        //                    onNameError: (invalidInput, invalidCharacter) =>
+        //                        Resources.FormatTagHelperDescriptorFactory_InvalidRestrictChildrenAttributeName(
+        //                            typeof(AspNetCore.Razor.TagHelpers.RestrictChildrenAttribute).FullName,
+        //                            invalidInput,
+        //                            "SomeTagHelper",
+        //                            invalidCharacter),
+        //                    whitespaceErrorString: nullOrWhiteSpaceError,
+        //                    onDataError: null);
+        //            }
+        //        }
+
+        //        [Theory]
+        //        [MemberData(nameof(InvalidRestrictChildrenNameData))]
+        //        public void GetValidAllowedChildren_AddsExpectedErrors(string name, string[] expectedErrorMessages)
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var expectedErrors = expectedErrorMessages.Select(
+        //                message => new RazorError(message, SourceLocation.Zero, 0));
+
+        //            // Act
+        //            DefaultTagHelperDescriptorFactory.GetValidAllowedChildren(new[] { name }, "SomeTagHelper", errorSink);
+
+        //            // Assert
+        //            Assert.Equal(expectedErrors, errorSink.Errors);
+        //        }
+
+        //        public static TheoryData<string, string[]> InvalidParentTagData
+        //        {
+        //            get
+        //            {
+        //                var nullOrWhiteSpaceError =
+        //                    Resources.FormatHtmlTargetElementAttribute_NameCannotBeNullOrWhitespace(
+        //                        Resources.TagHelperDescriptorFactory_ParentTag);
+
+        //                return GetInvalidNameOrPrefixData(
+        //                    onNameError: (invalidInput, invalidCharacter) =>
+        //                        Resources.FormatHtmlTargetElementAttribute_InvalidName(
+        //                            Resources.TagHelperDescriptorFactory_ParentTag.ToLower(),
+        //                            invalidInput,
+        //                            invalidCharacter),
+        //                    whitespaceErrorString: nullOrWhiteSpaceError,
+        //                    onDataError: null);
+        //            }
+        //        }
+
+        //        [Theory]
+        //        [MemberData(nameof(InvalidParentTagData))]
+        //        public void ValidateParentTagName_AddsExpectedErrors(string name, string[] expectedErrorMessages)
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var expectedErrors = expectedErrorMessages.Select(
+        //                message => new RazorError(message, SourceLocation.Zero, 0));
+
+        //            // Act
+        //            DefaultTagHelperDescriptorFactory.ValidateParentTagName(name, errorSink);
+
+        //            // Assert
+        //            Assert.Equal(expectedErrors, errorSink.Errors);
+        //        }
+
+        //        [Fact]
+        //        public void CreateDescriptor_BuildsDescriptorsFromSimpleTypes()
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var objectAssemblyName = typeof(Enumerable).GetTypeInfo().Assembly.GetName().Name;
+        //            var expectedDescriptor =
+        //                CreateTagHelperDescriptor("enumerable", "System.Linq.Enumerable", objectAssemblyName);
+        //            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(typeof(Enumerable).FullName);
+
+        //            // Act
+        //            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+
+        //            // Assert
+        //            Assert.Empty(errorSink.Errors);
+        //            var descriptor = Assert.Single(descriptors);
+        //            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
+        //        }
+
+        //        [Theory]
+        //        [MemberData(nameof(TagHelperWithPrefixData))]
+        //        public void CreateDescriptor_WithPrefixes_ReturnsExpectedAttributeDescriptors(
+        //            Type tagHelperType,
+        //            IEnumerable<BoundAttributeDescriptor> expectedAttributeDescriptors,
+        //            string[] expectedErrorMessages)
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: false);
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperType.FullName);
+
+        //            // Act
+        //            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+
+        //            // Assert
+        //            var errors = errorSink.Errors.ToArray();
+        //            Assert.Equal(expectedErrorMessages.Length, errors.Length);
+
+        //            for (var i = 0; i < errors.Length; i++)
+        //            {
+        //                Assert.Equal(0, errors[i].Length);
+        //                Assert.Equal(SourceLocation.Zero, errors[i].Location);
+        //                Assert.Equal(expectedErrorMessages[i], errors[i].Message, StringComparer.Ordinal);
+        //            }
+
+        //            var descriptor = Assert.Single(descriptors);
+        //            Assert.Equal(
+        //                expectedAttributeDescriptors,
+        //                descriptor.BoundAttributes,
+        //                TagHelperAttributeDescriptorComparer.Default);
+        //        }
+
+        //        public static TheoryData HtmlConversionData
+        //        {
+        //            get
+        //            {
+        //                return new TheoryData<string, string>
+        //                {
+        //                    { "SomeThing", "some-thing" },
+        //                    { "someOtherThing", "some-other-thing" },
+        //                    { "capsONInside", "caps-on-inside" },
+        //                    { "CAPSOnOUTSIDE", "caps-on-outside" },
+        //                    { "ALLCAPS", "allcaps" },
+        //                    { "One1Two2Three3", "one1-two2-three3" },
+        //                    { "ONE1TWO2THREE3", "one1two2three3" },
+        //                    { "First_Second_ThirdHi", "first_second_third-hi" }
+        //                };
+        //            }
+        //        }
+
+        //        [Theory]
+        //        [MemberData(nameof(HtmlConversionData))]
+        //        public void ToHtmlCase_ReturnsExpectedConversions(string input, string expectedOutput)
+        //        {
+        //            // Arrange, Act
+        //            var output = DefaultTagHelperDescriptorFactory.ToHtmlCase(input);
+
+        //            // Assert
+        //            Assert.Equal(output, expectedOutput);
+        //        }
+
+        //        public static TheoryData OutputElementHintData
+        //        {
+        //            get
+        //            {
+        //                // tagHelperType, expectedDescriptors
+        //                return new TheoryData<Type, TagHelperDescriptor[]>
+        //                {
+        //                    {
+        //                        typeof(MulitpleDescriptorTagHelperWithOutputElementHint),
+        //                        new[]
+        //                        {
+        //                            new TagHelperDescriptor
+        //                            {
+        //                                TagName = "a",
+        //                                TypeName = typeof(MulitpleDescriptorTagHelperWithOutputElementHint).FullName,
+        //                                AssemblyName = AssemblyName,
+        //                                DesignTimeDescriptor = new TagHelperDesignTimeDescriptor
+        //                                {
+        //                                    OutputElementHint = "div"
+        //                                }
+        //                            },
+        //                            new TagHelperDescriptor
+        //                            {
+        //                                TagName = "p",
+        //                                TypeName = typeof(MulitpleDescriptorTagHelperWithOutputElementHint).FullName,
+        //                                AssemblyName = AssemblyName,
+        //                                DesignTimeDescriptor = new TagHelperDesignTimeDescriptor
+        //                                {
+        //                                    OutputElementHint = "div"
+        //                                }
+        //                            }
+        //                        }
+        //                    },
+        //                    {
+        //                        typeof(InheritedOutputElementHintTagHelper),
+        //                        new[]
+        //                        {
+        //                            new TagHelperDescriptor
+        //                            {
+        //                                TagName = "inherited-output-element-hint",
+        //                                TypeName = typeof(InheritedOutputElementHintTagHelper).FullName,
+        //                                AssemblyName = AssemblyName,
+        //                                DesignTimeDescriptor = null
+        //                            }
+        //                        }
+        //                    },
+        //                    {
+        //                        typeof(OutputElementHintTagHelper),
+        //                        new[]
+        //                        {
+        //                            new TagHelperDescriptor
+        //                            {
+        //                                TagName = "output-element-hint",
+        //                                TypeName = typeof(OutputElementHintTagHelper).FullName,
+        //                                AssemblyName = AssemblyName,
+        //                                DesignTimeDescriptor = new TagHelperDesignTimeDescriptor
+        //                                {
+        //                                    OutputElementHint = "hinted-value"
+        //                                }
+        //                            }
+        //                        }
+        //                    },
+        //                    {
+        //                        typeof(OverriddenOutputElementHintTagHelper),
+        //                        new[]
+        //                        {
+        //                            new TagHelperDescriptor
+        //                            {
+        //                                TagName = "overridden-output-element-hint",
+        //                                TypeName = typeof(OverriddenOutputElementHintTagHelper).FullName,
+        //                                AssemblyName = AssemblyName,
+        //                                DesignTimeDescriptor = new TagHelperDesignTimeDescriptor
+        //                                {
+        //                                    OutputElementHint = "overridden"
+        //                                }
+        //                            }
+        //                        }
+        //                    },
+        //                };
+        //            }
+        //        }
+
+        //        [Theory]
+        //        [MemberData(nameof(OutputElementHintData))]
+        //        public void CreateDescriptor_CreatesDesignTimeDescriptorsWithOutputElementHint(
+        //            Type tagHelperType,
+        //            TagHelperDescriptor[] expectedDescriptors)
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime: true);
+        //            var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperType.FullName);
+
+        //            // Act
+        //            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+
+        //            // Assert
+        //            Assert.Empty(errorSink.Errors);
+
+        //            // We don't care about order. Mono returns reflected attributes differently so we need to ensure order
+        //            // doesn't matter by sorting.
+        //            descriptors = descriptors.OrderBy(descriptor => descriptor.TagName);
+
+        //            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
+        //        }
+
+        //        [Fact]
+        //        public void CreateDescriptor_CapturesRemarksAndSummaryOnTagHelperClass()
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var sytnaxTree = CSharpSyntaxTree.ParseText(@"
+        //using Microsoft.AspNetCore.Razor.TagHelpers;
+
+        ///// <summary>
+        ///// The summary for <see cref=""DocumentedTagHelper""/>.
+        ///// </summary>
+        ///// <remarks>
+        ///// Inherits from <see cref=""TagHelper""/>.
+        ///// </remarks>
+        //[" + typeof(AspNetCore.Razor.TagHelpers.OutputElementHintAttribute).FullName + @"(""p"")]
+        //public class DocumentedTagHelper : " + typeof(AspNetCore.Razor.TagHelpers.TagHelper).Name + @"
+        //{
+        //}");
+        //            var compilation = TestCompilation.Create(sytnaxTree);
+        //            var factory = new DefaultTagHelperDescriptorFactory(compilation, designTime: true);
+        //            var typeSymbol = compilation.GetTypeByMetadataName("DocumentedTagHelper");
+        //            var expectedDescriptor = new TagHelperDesignTimeDescriptor()
+        //            {
+        //                OutputElementHint = "p",
+        //                Summary = "The summary for <see cref=\"T:DocumentedTagHelper\" />.",
+        //                Remarks = "Inherits from <see cref=\"T:Microsoft.AspNetCore.Razor.TagHelpers.TagHelper\" />.",
+        //            };
+
+        //            // Act
+        //            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+
+        //            // Assert
+        //            Assert.Empty(errorSink.Errors);
+        //            var descriptor = Assert.Single(descriptors);
+        //            Assert.Equal(expectedDescriptor, descriptor.DesignTimeDescriptor, TagHelperDesignTimeDescriptorComparer.Default);
+        //        }
+
+        //        [Fact]
+        //        public void CreateDescriptor_CapturesRemarksAndSummaryOnTagHelperProperties()
+        //        {
+        //            // Arrange
+        //            var errorSink = new ErrorSink();
+        //            var sytnaxTree = CSharpSyntaxTree.ParseText(@"
+        //using System.Collections.Generic;
+
+        //public class DocumentedTagHelper : " + typeof(AspNetCore.Razor.TagHelpers.TagHelper).FullName + @"
+        //{
+        //    /// <summary>
+        //    /// This <see cref=""SummaryProperty""/> is of type <see cref=""string""/>.
+        //    /// </summary>
+        //    public string SummaryProperty { get; set; }
+
+        //    /// <remarks>
+        //    /// The <see cref=""SummaryProperty""/> may be <c>null</c>.
+        //    /// </remarks>
+        //    public int RemarksProperty { get; set; }
+
+        //    /// <summary>
+        //    /// This is a complex <see cref=""List{bool}""/>.
+        //    /// </summary>
+        //    /// <remarks>
+        //    /// <see cref=""SummaryProperty""/><see cref=""RemarksProperty""/>
+        //    /// </remarks>
+        //    public List<bool> RemarksAndSummaryProperty { get; set; }
+        //}");
+        //            var compilation = TestCompilation.Create(sytnaxTree);
+        //            var factory = new DefaultTagHelperDescriptorFactory(compilation, designTime: true);
+        //            var typeSymbol = compilation.GetTypeByMetadataName("DocumentedTagHelper");
+        //            var expectedDescriptors = new[]
+        //            {
+        //                new TagHelperAttributeDesignTimeDescriptor()
+        //                {
+        //                    Summary = "This <see cref=\"P:DocumentedTagHelper.SummaryProperty\" /> is of type <see cref=\"T:System.String\" />.",
+        //                },
+        //                new TagHelperAttributeDesignTimeDescriptor()
+        //                {
+        //                    Remarks = "The <see cref=\"P:DocumentedTagHelper.SummaryProperty\" /> may be <c>null</c>.",
+        //                },
+        //                new TagHelperAttributeDesignTimeDescriptor()
+        //                {
+        //                    Summary = "This is a complex <see cref=\"T:System.Collections.Generic.List`1\" />.",
+        //                    Remarks = "<see cref=\"P:DocumentedTagHelper.SummaryProperty\" /><see cref=\"P:DocumentedTagHelper.RemarksProperty\" />",
+        //                }
+        //            };
+
+        //            // Act
+        //            var descriptors = factory.CreateDescriptor(typeSymbol, errorSink);
+
+        //            // Assert
+        //            Assert.Empty(errorSink.Errors);
+        //            var attributeDescriptors = descriptors
+        //                .SelectMany(descriptor => descriptor.BoundAttributes)
+        //                .Select(descriptor => descriptor.DesignTimeDescriptor);
+        //            Assert.Equal(expectedDescriptors, attributeDescriptors, TagHelperAttributeDesignTimeDescriptorComparer.Default);
+        //        }
+
+        //        private static TheoryData<string, string[]> GetInvalidNameOrPrefixData(
+        //            Func<string, string, string> onNameError,
+        //            string whitespaceErrorString,
+        //            Func<string, string> onDataError)
+        //        {
+        //            // name, expectedErrorMessages
+        //            var data = new TheoryData<string, string[]>
+        //            {
+        //                { "!", new[] {  onNameError("!", "!") } },
+        //                { "hello!", new[] { onNameError("hello!", "!") } },
+        //                { "!hello", new[] { onNameError("!hello", "!") } },
+        //                { "he!lo", new[] { onNameError("he!lo", "!") } },
+        //                {
+        //                    "!he!lo!",
+        //                    new[]
+        //                    {
+        //                        onNameError("!he!lo!", "!"),
+        //                        onNameError("!he!lo!", "!"),
+        //                        onNameError("!he!lo!", "!"),
+        //                    }
+        //                },
+        //                { "@", new[] { onNameError("@", "@") } },
+        //                { "hello@", new[] { onNameError("hello@", "@") } },
+        //                { "@hello", new[] { onNameError("@hello", "@") } },
+        //                { "he@lo", new[] { onNameError("he@lo", "@") } },
+        //                {
+        //                    "@he@lo@",
+        //                    new[]
+        //                    {
+        //                        onNameError("@he@lo@", "@"),
+        //                        onNameError("@he@lo@", "@"),
+        //                        onNameError("@he@lo@", "@"),
+        //                    }
+        //                },
+        //                { "/", new[] { onNameError("/", "/") } },
+        //                { "hello/", new[] { onNameError("hello/", "/") } },
+        //                { "/hello", new[] { onNameError("/hello", "/") } },
+        //                { "he/lo", new[] { onNameError("he/lo", "/") } },
+        //                {
+        //                    "/he/lo/",
+        //                    new[]
+        //                    {
+        //                        onNameError("/he/lo/", "/"),
+        //                        onNameError("/he/lo/", "/"),
+        //                        onNameError("/he/lo/", "/"),
+        //                    }
+        //                },
+        //                { "<", new[] { onNameError("<", "<") } },
+        //                { "hello<", new[] { onNameError("hello<", "<") } },
+        //                { "<hello", new[] { onNameError("<hello", "<") } },
+        //                { "he<lo", new[] { onNameError("he<lo", "<") } },
+        //                {
+        //                    "<he<lo<",
+        //                    new[]
+        //                    {
+        //                        onNameError("<he<lo<", "<"),
+        //                        onNameError("<he<lo<", "<"),
+        //                        onNameError("<he<lo<", "<"),
+        //                    }
+        //                },
+        //                { "?", new[] { onNameError("?", "?") } },
+        //                { "hello?", new[] { onNameError("hello?", "?") } },
+        //                { "?hello", new[] { onNameError("?hello", "?") } },
+        //                { "he?lo", new[] { onNameError("he?lo", "?") } },
+        //                {
+        //                    "?he?lo?",
+        //                    new[]
+        //                    {
+        //                        onNameError("?he?lo?", "?"),
+        //                        onNameError("?he?lo?", "?"),
+        //                        onNameError("?he?lo?", "?"),
+        //                    }
+        //                },
+        //                { "[", new[] { onNameError("[", "[") } },
+        //                { "hello[", new[] { onNameError("hello[", "[") } },
+        //                { "[hello", new[] { onNameError("[hello", "[") } },
+        //                { "he[lo", new[] { onNameError("he[lo", "[") } },
+        //                {
+        //                    "[he[lo[",
+        //                    new[]
+        //                    {
+        //                        onNameError("[he[lo[", "["),
+        //                        onNameError("[he[lo[", "["),
+        //                        onNameError("[he[lo[", "["),
+        //                    }
+        //                },
+        //                { ">", new[] { onNameError(">", ">") } },
+        //                { "hello>", new[] { onNameError("hello>", ">") } },
+        //                { ">hello", new[] { onNameError(">hello", ">") } },
+        //                { "he>lo", new[] { onNameError("he>lo", ">") } },
+        //                {
+        //                    ">he>lo>",
+        //                    new[]
+        //                    {
+        //                        onNameError(">he>lo>", ">"),
+        //                        onNameError(">he>lo>", ">"),
+        //                        onNameError(">he>lo>", ">"),
+        //                    }
+        //                },
+        //                { "]", new[] { onNameError("]", "]") } },
+        //                { "hello]", new[] { onNameError("hello]", "]") } },
+        //                { "]hello", new[] { onNameError("]hello", "]") } },
+        //                { "he]lo", new[] { onNameError("he]lo", "]") } },
+        //                {
+        //                    "]he]lo]",
+        //                    new[]
+        //                    {
+        //                        onNameError("]he]lo]", "]"),
+        //                        onNameError("]he]lo]", "]"),
+        //                        onNameError("]he]lo]", "]"),
+        //                    }
+        //                },
+        //                { "=", new[] { onNameError("=", "=") } },
+        //                { "hello=", new[] { onNameError("hello=", "=") } },
+        //                { "=hello", new[] { onNameError("=hello", "=") } },
+        //                { "he=lo", new[] { onNameError("he=lo", "=") } },
+        //                {
+        //                    "=he=lo=",
+        //                    new[]
+        //                    {
+        //                        onNameError("=he=lo=", "="),
+        //                        onNameError("=he=lo=", "="),
+        //                        onNameError("=he=lo=", "="),
+        //                    }
+        //                },
+        //                { "\"", new[] { onNameError("\"", "\"") } },
+        //                { "hello\"", new[] { onNameError("hello\"", "\"") } },
+        //                { "\"hello", new[] { onNameError("\"hello", "\"") } },
+        //                { "he\"lo", new[] { onNameError("he\"lo", "\"") } },
+        //                {
+        //                    "\"he\"lo\"",
+        //                    new[]
+        //                    {
+        //                        onNameError("\"he\"lo\"", "\""),
+        //                        onNameError("\"he\"lo\"", "\""),
+        //                        onNameError("\"he\"lo\"", "\""),
+        //                    }
+        //                },
+        //                { "'", new[] { onNameError("'", "'") } },
+        //                { "hello'", new[] { onNameError("hello'", "'") } },
+        //                { "'hello", new[] { onNameError("'hello", "'") } },
+        //                { "he'lo", new[] { onNameError("he'lo", "'") } },
+        //                {
+        //                    "'he'lo'",
+        //                    new[]
+        //                    {
+        //                        onNameError("'he'lo'", "'"),
+        //                        onNameError("'he'lo'", "'"),
+        //                        onNameError("'he'lo'", "'"),
+        //                    }
+        //                },
+        //                { "hello*", new[] { onNameError("hello*", "*") } },
+        //                { "*hello", new[] { onNameError("*hello", "*") } },
+        //                { "he*lo", new[] { onNameError("he*lo", "*") } },
+        //                {
+        //                    "*he*lo*",
+        //                    new[]
+        //                    {
+        //                        onNameError("*he*lo*", "*"),
+        //                        onNameError("*he*lo*", "*"),
+        //                        onNameError("*he*lo*", "*"),
+        //                    }
+        //                },
+        //                { Environment.NewLine, new[] { whitespaceErrorString } },
+        //                { "\t", new[] { whitespaceErrorString } },
+        //                { " \t ", new[] { whitespaceErrorString } },
+        //                { " ", new[] { whitespaceErrorString } },
+        //                { Environment.NewLine + " ", new[] { whitespaceErrorString } },
+        //                {
+        //                    "! \t\r\n@/<>?[]=\"'*",
+        //                    new[]
+        //                    {
+        //                        onNameError("! \t\r\n@/<>?[]=\"'*", "!"),
+        //                        onNameError("! \t\r\n@/<>?[]=\"'*", " "),
+        //                        onNameError("! \t\r\n@/<>?[]=\"'*", "\t"),
+        //                        onNameError("! \t\r\n@/<>?[]=\"'*", "\r"),
+        //                        onNameError("! \t\r\n@/<>?[]=\"'*", "\n"),
+        //                        onNameError("! \t\r\n@/<>?[]=\"'*", "@"),
+        //                        onNameError("! \t\r\n@/<>?[]=\"'*", "/"),
+        //                        onNameError("! \t\r\n@/<>?[]=\"'*", "<"),
+        //                        onNameError("! \t\r\n@/<>?[]=\"'*", ">"),
+        //                        onNameError("! \t\r\n@/<>?[]=\"'*", "?"),
+        //                        onNameError("! \t\r\n@/<>?[]=\"'*", "["),
+        //                        onNameError("! \t\r\n@/<>?[]=\"'*", "]"),
+        //                        onNameError("! \t\r\n@/<>?[]=\"'*", "="),
+        //                        onNameError("! \t\r\n@/<>?[]=\"'*", "\""),
+        //                        onNameError("! \t\r\n@/<>?[]=\"'*", "'"),
+        //                        onNameError("! \t\r\n@/<>?[]=\"'*", "*"),
+        //                    }
+        //                },
+        //                {
+        //                    "! \tv\ra\nl@i/d<>?[]=\"'*",
+        //                    new[]
+        //                    {
+        //                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "!"),
+        //                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", " "),
+        //                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "\t"),
+        //                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "\r"),
+        //                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "\n"),
+        //                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "@"),
+        //                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "/"),
+        //                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "<"),
+        //                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", ">"),
+        //                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "?"),
+        //                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "["),
+        //                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "]"),
+        //                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "="),
+        //                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "\""),
+        //                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "'"),
+        //                        onNameError("! \tv\ra\nl@i/d<>?[]=\"'*", "*"),
+        //                    }
+        //                },
+        //            };
+
+        //            if (onDataError != null)
+        //            {
+        //                data.Add("data-", new[] { onDataError("data-") });
+        //                data.Add("data-something", new[] { onDataError("data-something") });
+        //                data.Add("Data-Something", new[] { onDataError("Data-Something") });
+        //                data.Add("DATA-SOMETHING", new[] { onDataError("DATA-SOMETHING") });
+        //            }
+
+        //            return data;
+        //        }
 
         protected static TagHelperDescriptor CreateTagHelperDescriptor(
             string tagName,
             string typeName,
             string assemblyName,
-            IEnumerable<BoundAttributeDescriptor> attributes = null,
-            IEnumerable<RequiredAttributeDescriptor> requiredAttributes = null)
+            IEnumerable<Action<ITagHelperBoundAttributeDescriptorBuilder>> attributes = null,
+            IEnumerable<Action<TagMatchingRuleBuilder>> ruleBuilders = null)
         {
-            return new TagHelperDescriptor
-            {
-                TagName = tagName,
-                TypeName = typeName,
-                AssemblyName = assemblyName,
-                Attributes = attributes ?? Enumerable.Empty<BoundAttributeDescriptor>(),
-                RequiredAttributes = requiredAttributes ?? Enumerable.Empty<RequiredAttributeDescriptor>()
-            };
-        }
+            var builder = ITagHelperDescriptorBuilder.Create(typeName, AssemblyName);
 
-        private static BoundAttributeDescriptor CreateTagHelperAttributeDescriptor(
-            string name,
-            PropertyInfo propertyInfo)
-        {
-            return new BoundAttributeDescriptor
+            if (attributes != null)
             {
-                Name = name,
-                PropertyName = propertyInfo.Name,
-                TypeName = propertyInfo.PropertyType.FullName,
-                IsStringProperty = propertyInfo.PropertyType.FullName == typeof(string).FullName
-            };
+                foreach (var attributeBuilder in attributes)
+                {
+                    builder.BindAttribute(attributeBuilder);
+                }
+            }
+
+            if (ruleBuilders != null)
+            {
+                foreach (var ruleBuilder in ruleBuilders)
+                {
+                    builder.TagMatchingRule(innerRuleBuilder => {
+                        innerRuleBuilder.RequireTagName(tagName);
+                        ruleBuilder(innerRuleBuilder);
+                    });
+                }
+            }
+            else
+            {
+                builder.TagMatchingRule(ruleBuilder => ruleBuilder.RequireTagName(tagName));
+            }
+
+            var descriptor = builder.Build();
+
+            return descriptor;
         }
     }
 
